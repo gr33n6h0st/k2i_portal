@@ -7,12 +7,12 @@
     <style>
         :root {
             --bg-color: #06080c;
-            --panel-bg: rgba(10, 14, 22, 0.92);
-            --border-color: rgba(45, 54, 69, 0.5);
+            --panel-bg: rgba(10, 14, 22, 0.95);
+            --border-color: rgba(45, 54, 69, 0.4);
             --text-main: #f0f3f6;
             --text-muted: #6e7681;
             
-            /* High-Tech Categorization Palette */
+            /* Clean Sci-Fi Category Accent Palette */
             --color-camp-lead: #00bcff;
             --color-camp: #00ffd2;
             --color-wil-lead: #ff007f;
@@ -41,16 +41,12 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            cursor: grab;
-        }
-        #network-canvas:active {
-            cursor: grabbing;
         }
 
-        /* HUD Overlay Elements */
+        /* HUD Header */
         header {
             position: absolute;
-            top: 30px;
+            top: 25px;
             left: 30px;
             z-index: 10;
             pointer-events: none;
@@ -60,43 +56,41 @@
             text-transform: uppercase;
             letter-spacing: 4px;
             font-weight: 500;
-            color: var(--text-main);
         }
         header p {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
             letter-spacing: 1.5px;
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
-        .legend {
+        /* HTML Sector Headers for Clear Categorization */
+        .sector-header {
             position: absolute;
-            bottom: 30px;
-            left: 30px;
             z-index: 10;
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            padding: 16px;
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            backdrop-filter: blur(10px);
+            pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding-bottom: 6px;
+            width: 40%;
         }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            color: #c9d1d9;
+        .sector-header::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, currentColor, transparent);
+            margin-top: 6px;
+            opacity: 0.4;
         }
-        .legend-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            box-shadow: 0 0 8px currentColor;
-        }
+
+        /* Position headers explicitly over the 4 quadrants */
+        #header-camp-leads { top: 12%; left: 6%; color: var(--color-camp-lead); }
+        #header-camp { top: 54%; left: 6%; color: var(--color-camp); }
+        #header-wil-leads { top: 12%; left: 54%; color: var(--color-wil-lead); }
+        #header-wil { top: 54%; left: 54%; color: var(--color-wil); }
 
         /* Smooth Slide-out Profile Panel */
         .drawer {
@@ -167,10 +161,9 @@
         .grid-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-            background-size: 50px 50px;
-            background-position: center;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+            background-size: 40px 40px;
             pointer-events: none;
             z-index: 0;
         }
@@ -182,16 +175,14 @@
     <canvas id="network-canvas"></canvas>
 
     <header>
-        <h1>SYS_ORGANIZATION_MAP</h1>
-        <p>ACTIVE NODE NETWORK // CATEGORIZED STRUCTURE</p>
+        <h1>CORE_PERSONNEL_MATRIX</h1>
+        <p>SECURE INTERFACE // STABLE NETWORK GRID</p>
     </header>
 
-    <div class="legend">
-        <div class="legend-item"><span class="legend-dot" style="color: var(--color-camp-lead); background: var(--color-camp-lead);"></span> Community Leads</div>
-        <div class="legend-item"><span class="legend-dot" style="color: var(--color-camp); background: var(--color-camp);"></span> Community Camp</div>
-        <div class="legend-item"><span class="legend-dot" style="color: var(--color-wil-lead); background: var(--color-wil-lead);"></span> Work-Integrated Learning Leads</div>
-        <div class="legend-item"><span class="legend-dot" style="color: var(--color-wil); background: var(--color-wil);"></span> Work-Integrated Learning</div>
-    </div>
+    <div id="header-camp-leads" class="sector-header">Community Leads</div>
+    <div id="header-camp" class="sector-header">Community Camp</div>
+    <div id="header-wil-leads" class="sector-header">Work-Integrated Learning Leads</div>
+    <div id="header-wil" class="sector-header">Work-Integrated Learning</div>
 
     <div id="drawer" class="drawer">
         <button class="close-btn" onclick="closeDrawer()">×</button>
@@ -210,34 +201,64 @@
         let height = canvas.height = window.innerHeight;
 
         const categories = {
-            "Community Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.08)", targetX: 0.3, targetY: 0.3 },
-            "Community Camp": { color: "#00ffd2", bg: "rgba(0,255,210,0.08)", targetX: 0.3, targetY: 0.7 },
-            "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.08)", targetX: 0.7, targetY: 0.3 },
-            "Work-Integrated Learning": { color: "#9d4edd", bg: "rgba(157,78,221,0.08)", targetX: 0.7, targetY: 0.7 }
+            "Community Leads": { color: "#00bcff", bounds: { minX: 0.05, maxX: 0.45, minY: 0.15, maxY: 0.45 } },
+            "Community Camp": { color: "#00ffd2", bounds: { minX: 0.05, maxX: 0.45, minY: 0.58, maxY: 0.90 } },
+            "Work-Integrated Learning Leads": { color: "#ff007f", bounds: { minX: 0.52, maxX: 0.92, minY: 0.15, maxY: 0.45 } },
+            "Work-Integrated Learning": { color: "#9d4edd", bounds: { minX: 0.52, maxX: 0.92, minY: 0.58, maxY: 0.90 } }
         };
 
         let nodes = [];
-        let selectedNode = null;
         let hoveredNode = null;
-        let isDraggingNode = false;
-
-        // Physics Settings for Flowy Movements
-        const gravityStrength = 0.04;
-        const friction = 0.88;
-        const repulseRadius = 90;
-        const repulseStrength = 350;
+        let selectedNode = null;
 
         function generateData() {
             const catKeys = Object.keys(categories);
             const totalPeople = 45;
 
-            // --- USER STEP: Replace this loop with your real 45-person array when ready ---
+            // Target counts per category to map out cleanly
+            const counts = {
+                "Community Leads": 4,
+                "Community Camp": 16,
+                "Work-Integrated Learning Leads": 4,
+                "Work-Integrated Learning": 21
+            };
+
+            let tracker = { "Community Leads": 0, "Community Camp": 0, "Work-Integrated Learning Leads": 0, "Work-Integrated Learning": 0 };
+
             for (let i = 0; i < totalPeople; i++) {
                 let category;
-                if (i < 4) category = catKeys[0];      // 4 Community Leads
-                else if (i < 20) category = catKeys[1]; // 16 Community Camp
-                else if (i < 24) category = catKeys[2]; // 4 WIL Leads
-                else category = catKeys[3];             // 21 WIL Members
+                if (i < 4) category = catKeys[0];
+                else if (i < 20) category = catKeys[1];
+                else if (i < 24) category = catKeys[2];
+                else category = catKeys[3];
+
+                let b = categories[category].bounds;
+                let count = counts[category];
+                let currentIdx = tracker[category]++;
+
+                // Calculate neat grid coordinate layouts inside each section's boundary walls
+                let cols = Math.ceil(Math.sqrt(count));
+                let row = Math.floor(currentIdx / cols);
+                let col = currentIdx % cols;
+                
+                let totalRows = Math.ceil(count / cols);
+
+                // Math spacing distribution
+                let pctX = cols > 1 ? col / (cols - 1) : 0.5;
+                let pctY = totalRows > 1 ? row / (totalRows - 1) : 0.5;
+
+                // Pad out edges gently so elements don't hug borders
+                let padX = (b.maxX - b.minX) * 0.1;
+                let padY = (b.maxY - b.minY) * 0.1;
+                
+                let x = width * (b.minX + padX + pctX * ((b.maxX - b.minX) - padX * 2));
+                let y = height * (b.minY + padY + pctY * ((b.maxY - b.minY) - padY * 2));
+
+                // Slight offset logic just to break rigid monotony, keeping it look like a high tech map
+                if(count > 4) {
+                    x += (Math.sin(currentIdx) * 15);
+                    y += (Math.cos(currentIdx) * 15);
+                }
 
                 nodes.push({
                     id: i,
@@ -245,120 +266,72 @@
                     category: category,
                     bio: `Systems operational profile data for specialized asset within the ${category} matrix department grid.`,
                     imgUrl: `https://i.pravatar.cc/150?img=${(i % 70) + 1}`,
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    vx: 0,
-                    vy: 0,
-                    radius: 28,
+                    x: x,
+                    y: y,
+                    radius: 26,
                     imgObj: null
                 });
             }
 
-            // Image preloader with center-cropping handling
             nodes.forEach(node => {
                 const img = new Image();
                 img.src = node.imgUrl;
-                img.onload = () => { node.imgObj = img; };
+                img.onload = () => { node.imgObj = img; draw(); };
             });
         }
 
-        // Live Physics Update Engine
-        function updatePhysics() {
-            for (let i = 0; i < nodes.length; i++) {
-                let n1 = nodes[i];
-                if (n1 === isDraggingNode) continue;
-
-                // 1. Group Gravity: Pull nodes smoothly to their assigned Category sector quadrants
-                let targetX = width * categories[n1.category].targetX;
-                let targetY = height * categories[n1.category].targetY;
-                
-                n1.vx += (targetX - n1.x) * gravityStrength;
-                n1.vy += (targetY - n1.y) * gravityStrength;
-
-                // 2. Node Repulsion: Prevents overlap, forces layout to look organized but loose
-                for (let j = i + 1; j < nodes.length; j++) {
-                    let n2 = nodes[j];
-                    let dx = n2.x - n1.x;
-                    let dy = n2.y - n1.y;
-                    let dist = Math.hypot(dx, dy);
-                    let minDist = n1.radius + n2.radius + 25;
-
-                    if (dist < minDist && dist > 0) {
-                        let force = (minDist - dist) / minDist * repulseStrength;
-                        let pushX = (dx / dist) * force * 0.1;
-                        let pushY = (dy / dist) * force * 0.1;
-
-                        n1.vx -= pushX;
-                        n1.vy -= pushY;
-                        n2.vx += pushX;
-                        n2.vy += pushY;
-                    }
-                }
-
-                // Apply velocity and drag friction
-                n1.vx *= friction;
-                n1.vy *= friction;
-                n1.x += n1.vx;
-                n1.y += n1.vy;
-
-                // Contain nodes inside screen boundary walls cleanly
-                n1.x = Math.max(n1.radius + 10, Math.min(width - n1.radius - 10, n1.x));
-                n1.y = Math.max(n1.radius + 10, Math.min(height - n1.radius - 10, n1.y));
-            }
-        }
-
-        // Render Frame Loop
         function draw() {
-            updatePhysics();
             ctx.clearRect(0, 0, width, height);
 
-            // 1. Draw Structural Network Connective Webbing
-            ctx.lineWidth = 0.8;
-            for (let i = 0; i < nodes.length; i++) {
-                for (let j = i + 1; j < nodes.length; j++) {
-                    let n1 = nodes[i];
-                    let n2 = nodes[j];
-                    let dist = Math.hypot(n2.x - n1.x, n2.y - n1.y);
+            // 1. Draw Clean Structural Connected Webbing Lines for each Category
+            Object.keys(categories).forEach(catKey => {
+                let catNodes = nodes.filter(n => n.category === catKey);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = categories[catKey].color + "33"; // Clear, glowing structural lines
 
-                    // Draw clean line connections if they are in the same category and close by
-                    if (n1.category === n2.category && dist < 160) {
-                        ctx.beginPath();
-                        ctx.moveTo(n1.x, n1.y);
-                        ctx.lineTo(n2.x, n2.y);
-                        ctx.strokeStyle = categories[n1.category].color + "1f"; // Smooth subtle opacity
-                        ctx.stroke();
+                ctx.beginPath();
+                for (let i = 0; i < catNodes.length; i++) {
+                    // Connect each node to its nearest neighbors within the category
+                    for (let j = i + 1; j < catNodes.length; j++) {
+                        let dist = Math.hypot(catNodes[j].x - catNodes[i].x, catNodes[j].y - catNodes[i].y);
+                        // Ensures lines lock them together visually without becoming an over-the-top spiderweb
+                        if (dist < width * 0.18) { 
+                            ctx.moveTo(catNodes[i].x, catNodes[i].y);
+                            ctx.lineTo(catNodes[j].x, catNodes[j].y);
+                        }
                     }
                 }
-            }
+                ctx.stroke();
+            });
 
-            // 2. Draw Floating Identity Nodes
+            // 2. Draw Stable Identity Circles
             nodes.forEach(node => {
                 ctx.save();
                 ctx.translate(node.x, node.y);
 
                 const accentColor = categories[node.category].color;
-                const active = (hoveredNode === node || selectedNode === node);
+                const isHovered = (hoveredNode === node);
+                const isSelected = (selectedNode === node);
 
-                // Tech Outer Aura Ring
+                // High-tech Accent Rings
                 ctx.beginPath();
                 ctx.arc(0, 0, node.radius + 4, 0, Math.PI * 2);
-                ctx.strokeStyle = active ? accentColor : "rgba(255, 255, 255, 0.08)";
-                ctx.lineWidth = active ? 2 : 1;
+                ctx.strokeStyle = (isHovered || isSelected) ? accentColor : "rgba(255, 255, 255, 0.08)";
+                ctx.lineWidth = (isHovered || isSelected) ? 2 : 1;
                 ctx.stroke();
 
-                if (active) {
-                    ctx.shadowBlur = 12;
+                if (isHovered || isSelected) {
+                    ctx.shadowBlur = 10;
                     ctx.shadowColor = accentColor;
                 }
 
-                // Inner Masked Photo Area
+                // Profile Image Masking Core
                 ctx.beginPath();
                 ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
                 ctx.fillStyle = "#0c1017";
                 ctx.fill();
                 ctx.clip();
 
-                // Advanced Centered Image Fitting (Aspect Ratio Lock, prevents stretching)
                 if (node.imgObj) {
                     let img = node.imgObj;
                     let size = node.radius * 2;
@@ -372,11 +345,10 @@
                     
                     ctx.drawImage(img, sX, sY, sWidth, sHeight, -node.radius, -node.radius, size, size);
                 }
-
                 ctx.restore();
 
-                // Draw Name text cleanly right beneath the circle node if hovered
-                if (hoveredNode === node) {
+                // Clean text label rendering
+                if (isHovered) {
                     ctx.font = "10px sans-serif";
                     ctx.fillStyle = "#ffffff";
                     ctx.textAlign = "center";
@@ -384,52 +356,31 @@
                     ctx.fillText(node.name.toUpperCase(), node.x, node.y + node.radius + 18);
                 }
             });
-
-            requestAnimationFrame(draw);
         }
 
-        // Coordinate Matching & Pointer Actions
+        // Exact Hit Detection (No physics delays)
         function getNodeAtPos(x, y) {
-            return nodes.find(node => Math.hypot(node.x - x, node.y - y) < node.radius + 8);
+            return nodes.find(node => Math.hypot(node.x - x, node.y - y) < node.radius + 6);
         }
 
-        canvas.addEventListener('mousedown', (e) => {
+        canvas.addEventListener('click', (e) => {
             const clicked = getNodeAtPos(e.clientX, e.clientY);
             if (clicked) {
-                isDraggingNode = clicked;
                 selectedNode = clicked;
                 openProfile(clicked);
+                draw();
             }
         });
 
         canvas.addEventListener('mousemove', (e) => {
-            if (isDraggingNode) {
-                isDraggingNode.x = e.clientX;
-                isDraggingNode.y = e.clientY;
-                isDraggingNode.vx = 0;
-                isDraggingNode.vy = 0;
-            } else {
-                hoveredNode = getNodeAtPos(e.clientX, e.clientY);
+            const prevHovered = hoveredNode;
+            hoveredNode = getNodeAtPos(e.clientX, e.clientY);
+            if (hoveredNode !== prevHovered) {
+                draw();
             }
         });
 
-        window.addEventListener('mouseup', () => { isDraggingNode = false; });
-
-        // Touch Support for Screens
-        canvas.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            const clicked = getNodeAtPos(touch.clientX, touch.clientY);
-            if (clicked) { isDraggingNode = clicked; selectedNode = clicked; openProfile(clicked); }
-        });
-        canvas.addEventListener('touchmove', (e) => {
-            if (!isDraggingNode) return;
-            const touch = e.touches[0];
-            isDraggingNode.x = touch.clientX;
-            isDraggingNode.y = touch.clientY;
-        });
-        window.addEventListener('touchend', () => { isDraggingNode = false; });
-
-        // Interface Drawer Slide Operations
+        // UI Drawer Actions
         function openProfile(node) {
             document.getElementById('drawer-img').src = node.imgUrl;
             document.getElementById('drawer-name').innerText = node.name;
@@ -446,16 +397,19 @@
         function closeDrawer() {
             drawer.classList.remove('open');
             selectedNode = null;
+            draw();
         }
 
         window.addEventListener('resize', () => {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
+            // Recalculate layout paths cleanly on resize
+            nodes = [];
+            generateData();
         });
 
-        // Start App
+        // Initialization
         generateData();
-        requestAnimationFrame(draw);
     </script>
 </body>
 </html>
