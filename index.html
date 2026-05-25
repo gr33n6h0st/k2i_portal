@@ -260,7 +260,6 @@
         let currentRotation = { x: 0, y: 0 };
         let hoveredMesh = null;
 
-        // Interactive Tracking Metrics
         let dragTotalDistance = 0;
         const ambientVelocityY = 0.0012;
 
@@ -302,6 +301,9 @@
             const radius = 5.5; 
             const textureLoader = new THREE.TextureLoader();
 
+            // Set cross-origin rules globally so textures load properly without browser security roadblocks
+            textureLoader.setCrossOrigin('anonymous');
+
             for (let i = 0; i < totalPeople; i++) {
                 let category;
                 if (i < 5) category = "Community Camp Leads";
@@ -324,8 +326,8 @@
                 const ringMat = new THREE.MeshBasicMaterial({ color: meta.color, side: THREE.DoubleSide });
                 const ringMesh = new THREE.Mesh(ringGeo, ringMat);
 
+                // FIXED: Direct base map initialization utilizing a basic shader material map update loop
                 const material = new THREE.MeshBasicMaterial({
-                    color: 0x0c1017,
                     side: THREE.DoubleSide,
                     transparent: true,
                     opacity: 0.95
@@ -333,8 +335,9 @@
 
                 const imgUrl = `https://i.pravatar.cc/150?img=${(i % 70) + 1}`;
                 
+                // FIXED: Instant binding assignments map raw textures instantly to face meshes on stream completion
                 textureLoader.load(imgUrl, (texture) => {
-                    material.color.setHex(0xffffff); 
+                    texture.minFilter = THREE.LinearFilter; // Ensures rendering is razor-sharp
                     material.map = texture;
                     material.needsUpdate = true;
                 });
@@ -385,8 +388,9 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // FIXED: Continuous, non-blocking ambient spin updates even after dragging releases
-            targetRotation.y += ambientVelocityY; 
+            if (!isDragging) {
+                globeGroup.rotation.y += ambientVelocityY; 
+            }
 
             currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
             currentRotation.y += (targetRotation.y - currentRotation.y) * 0.1;
@@ -411,15 +415,12 @@
             window.addEventListener('mousedown', (e) => {
                 if (document.body.classList.contains('modal-active')) return;
                 isDragging = true;
-                dragTotalDistance = 0; // Clear metric path offsets
+                dragTotalDistance = 0; 
                 previousMousePosition = { x: e.clientX, y: e.clientY };
             });
 
             window.addEventListener('mousemove', onMouseMove);
-            
-            window.addEventListener('mouseup', () => { 
-                isDragging = false; 
-            });
+            window.addEventListener('mouseup', () => { isDragging = false; });
 
             // Touch Support
             window.addEventListener('touchstart', (e) => {
@@ -443,8 +444,6 @@
             });
 
             window.addEventListener('touchend', () => { isDragging = false; });
-            
-            // FIXED: Switched interaction execution matrix entirely to a standard safe click listener
             window.addEventListener('click', onCanvasClick);
         }
 
@@ -454,7 +453,6 @@
                     x: e.clientX - previousMousePosition.x,
                     y: e.clientY - previousMousePosition.y
                 };
-                // Accumulate pixel navigation paths to accurately verify drags vs clicks
                 dragTotalDistance += Math.hypot(deltaMove.x, deltaMove.y);
 
                 targetRotation.y += deltaMove.x * 0.005;
@@ -493,8 +491,6 @@
 
         function onCanvasClick(e) {
             if (document.body.classList.contains('modal-active')) return;
-
-            // FIXED: If user dragged cursor past a strict 5px threshold boundary, completely skip popup execution
             if (dragTotalDistance > 5) return;
 
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
