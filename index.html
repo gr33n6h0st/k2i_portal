@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Org Network</title>
+    <title>Personnel Network Interface</title>
     <style>
         :root {
-            --bg-color: #0a0c10;
-            --panel-bg: rgba(16, 20, 28, 0.95);
-            --border-color: #1f242c;
+            --bg-color: #06080c;
+            --panel-bg: rgba(10, 14, 22, 0.92);
+            --border-color: rgba(45, 54, 69, 0.5);
             --text-main: #f0f3f6;
-            --text-muted: #8b949e;
+            --text-muted: #6e7681;
             
-            /* Category Accent Colors - Sleek Sci-Fi Palettes */
-            --color-camp: #00ffd2;
+            /* High-Tech Categorization Palette */
             --color-camp-lead: #00bcff;
-            --color-wil: #9d4edd;
+            --color-camp: #00ffd2;
             --color-wil-lead: #ff007f;
+            --color-wil: #9d4edd;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         body {
@@ -34,7 +34,6 @@
             height: 100vh;
         }
 
-        /* Network Canvas */
         #network-canvas {
             position: absolute;
             top: 0;
@@ -48,134 +47,130 @@
             cursor: grabbing;
         }
 
-        /* HUD Header */
+        /* HUD Overlay Elements */
         header {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 30px;
+            left: 30px;
             z-index: 10;
             pointer-events: none;
         }
         header h1 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            font-weight: 400;
+            letter-spacing: 4px;
+            font-weight: 500;
             color: var(--text-main);
-            text-shadow: 0 0 10px rgba(255,255,255,0.1);
         }
         header p {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
-            letter-spacing: 1px;
-            margin-top: 4px;
+            letter-spacing: 1.5px;
+            margin-top: 6px;
         }
 
-        /* Legend/Filters */
         .legend {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
+            bottom: 30px;
+            left: 30px;
             z-index: 10;
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            padding: 12px 16px;
-            border-radius: 6px;
+            padding: 16px;
+            border-radius: 4px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            backdrop-filter: blur(8px);
+            gap: 10px;
+            backdrop-filter: blur(10px);
         }
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             font-size: 0.75rem;
             letter-spacing: 0.5px;
-            color: var(--text-muted);
+            color: #c9d1d9;
         }
         .legend-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
+            box-shadow: 0 0 8px currentColor;
         }
 
-        /* Profile Detail Drawer */
+        /* Smooth Slide-out Profile Panel */
         .drawer {
             position: absolute;
             top: 0;
-            right: -380px;
-            width: 350px;
+            right: -400px;
+            width: 380px;
             height: 100%;
             background: var(--panel-bg);
             border-left: 1px solid var(--border-color);
             z-index: 20;
-            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            padding: 40px 30px;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 50px 35px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            backdrop-filter: blur(12px);
-            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(16px);
         }
         .drawer.open {
-            right: 0;
+            transform: translateX(-400px);
         }
         .close-btn {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 25px;
+            right: 25px;
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            transition: color 0.2s;
         }
-        .close-btn:hover {
-            color: var(--text-main);
-        }
+        .close-btn:hover { color: var(--text-main); }
+        
         .drawer-avatar {
-            width: 120px;
-            height: 120px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
-            border: 2px solid transparent;
-            padding: 4px;
-            margin-bottom: 20px;
-            object-fit: cover;
+            border: 1px solid var(--border-color);
+            padding: 5px;
+            margin-bottom: 25px;
         }
         .drawer-name {
-            font-size: 1.4rem;
-            font-weight: 500;
-            margin-bottom: 4px;
-            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
         }
         .drawer-tag {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            margin-bottom: 24px;
+            padding: 4px 12px;
+            border-radius: 2px;
+            margin-bottom: 30px;
             font-weight: 600;
+            background: rgba(255,255,255,0.05);
         }
         .drawer-bio {
             font-size: 0.85rem;
             line-height: 1.6;
-            color: var(--text-muted);
+            color: #afb8c1;
             text-align: center;
             border-top: 1px solid var(--border-color);
-            padding-top: 20px;
+            padding-top: 25px;
             width: 100%;
         }
 
-        /* Subtle grid overlay for tech look */
         .grid-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(31, 36, 44, 0.1) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(31, 36, 44, 0.1) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: center;
             pointer-events: none;
             z-index: 0;
         }
@@ -187,15 +182,15 @@
     <canvas id="network-canvas"></canvas>
 
     <header>
-        <h1>CORE_NETWORK</h1>
-        <p>PERSONNEL INTERFACE // INTERACTIVE NODE MAP</p>
+        <h1>SYS_ORGANIZATION_MAP</h1>
+        <p>ACTIVE NODE NETWORK // CATEGORIZED STRUCTURE</p>
     </header>
 
     <div class="legend">
-        <div class="legend-item"><span class="legend-dot" style="background: var(--color-camp-lead);"></span> Community Leads</div>
-        <div class="legend-item"><span class="legend-dot" style="background: var(--color-camp);"></span> Community Camp</div>
-        <div class="legend-item"><span class="legend-dot" style="background: var(--color-wil-lead);"></span> Work-Integrated Learning Leads</div>
-        <div class="legend-item"><span class="legend-dot" style="background: var(--color-wil);"></span> Work-Integrated Learning</div>
+        <div class="legend-item"><span class="legend-dot" style="color: var(--color-camp-lead); background: var(--color-camp-lead);"></span> Community Leads</div>
+        <div class="legend-item"><span class="legend-dot" style="color: var(--color-camp); background: var(--color-camp);"></span> Community Camp</div>
+        <div class="legend-item"><span class="legend-dot" style="color: var(--color-wil-lead); background: var(--color-wil-lead);"></span> Work-Integrated Learning Leads</div>
+        <div class="legend-item"><span class="legend-dot" style="color: var(--color-wil); background: var(--color-wil);"></span> Work-Integrated Learning</div>
     </div>
 
     <div id="drawer" class="drawer">
@@ -215,210 +210,234 @@
         let height = canvas.height = window.innerHeight;
 
         const categories = {
-            "Community Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.1)" },
-            "Community Camp": { color: "#00ffd2", bg: "rgba(0,255,210,0.1)" },
-            "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.1)" },
-            "Work-Integrated Learning": { color: "#9d4edd", bg: "rgba(157,78,221,0.1)" }
+            "Community Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.08)", targetX: 0.3, targetY: 0.3 },
+            "Community Camp": { color: "#00ffd2", bg: "rgba(0,255,210,0.08)", targetX: 0.3, targetY: 0.7 },
+            "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.08)", targetX: 0.7, targetY: 0.3 },
+            "Work-Integrated Learning": { color: "#9d4edd", bg: "rgba(157,78,221,0.08)", targetX: 0.7, targetY: 0.7 }
         };
 
         let nodes = [];
         let selectedNode = null;
-        
-        // Pan & Zoom state
-        let transform = { x: 0, y: 0, scale: 0.9 };
-        let isDragging = false;
-        let startPan = { x: 0, y: 0 };
+        let hoveredNode = null;
+        let isDraggingNode = false;
 
-        // Generate 45 placeholder employees 
+        // Physics Settings for Flowy Movements
+        const gravityStrength = 0.04;
+        const friction = 0.88;
+        const repulseRadius = 90;
+        const repulseStrength = 350;
+
         function generateData() {
             const catKeys = Object.keys(categories);
             const totalPeople = 45;
 
+            // --- USER STEP: Replace this loop with your real 45-person array when ready ---
             for (let i = 0; i < totalPeople; i++) {
-                // Distribute roles across categories
                 let category;
-                if (i < 4) category = catKeys[0]; // 4 Leads
-                else if (i < 20) category = catKeys[1]; // 16 Camp members
+                if (i < 4) category = catKeys[0];      // 4 Community Leads
+                else if (i < 20) category = catKeys[1]; // 16 Community Camp
                 else if (i < 24) category = catKeys[2]; // 4 WIL Leads
-                else category = catKeys[3]; // 21 WIL members
+                else category = catKeys[3];             // 21 WIL Members
 
-                // Place nodes loosely in an orbital structure from center
-                const angle = (i / totalPeople) * Math.PI * 4 + (Math.random() * 0.5);
-                const radius = 150 + (i * 12) + (Math.random() * 40);
-                
                 nodes.push({
                     id: i,
-                    name: `Employee ${i + 1}`,
+                    name: `Staff Member ${i + 1}`,
                     category: category,
-                    bio: `This is a high-tech placeholder profile bio for Employee ${i + 1}. Serving natively within the ${category} matrix sector. Specialized in systems execution and project workflow scaling.`,
-                    // Using standard open-source square UI avatars
-                    imgUrl: `https://i.pravatar.cc/150?img=${(i % 70) + 1}`, 
-                    x: width / 2 + Math.cos(angle) * radius,
-                    y: height / 2 + Math.sin(angle) * radius,
-                    radius: 26, // Node click size
+                    bio: `Systems operational profile data for specialized asset within the ${category} matrix department grid.`,
+                    imgUrl: `https://i.pravatar.cc/150?img=${(i % 70) + 1}`,
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: 0,
+                    vy: 0,
+                    radius: 28,
                     imgObj: null
                 });
             }
-            
-            // Preload images safely onto canvas
+
+            // Image preloader with center-cropping handling
             nodes.forEach(node => {
                 const img = new Image();
                 img.src = node.imgUrl;
-                img.onload = () => { node.imgObj = img; draw(); };
+                img.onload = () => { node.imgObj = img; };
             });
         }
 
-        // Render functions
-        function draw() {
-            ctx.clearRect(0, 0, width, height);
-            ctx.save();
-            
-            // Apply Camera movements (Pan & Zoom)
-            ctx.translate(transform.x, transform.y);
-            ctx.scale(transform.scale, transform.scale);
+        // Live Physics Update Engine
+        function updatePhysics() {
+            for (let i = 0; i < nodes.length; i++) {
+                let n1 = nodes[i];
+                if (n1 === isDraggingNode) continue;
 
-            // 1. Draw Network Connections (Lines)
-            ctx.lineWidth = 0.6;
+                // 1. Group Gravity: Pull nodes smoothly to their assigned Category sector quadrants
+                let targetX = width * categories[n1.category].targetX;
+                let targetY = height * categories[n1.category].targetY;
+                
+                n1.vx += (targetX - n1.x) * gravityStrength;
+                n1.vy += (targetY - n1.y) * gravityStrength;
+
+                // 2. Node Repulsion: Prevents overlap, forces layout to look organized but loose
+                for (let j = i + 1; j < nodes.length; j++) {
+                    let n2 = nodes[j];
+                    let dx = n2.x - n1.x;
+                    let dy = n2.y - n1.y;
+                    let dist = Math.hypot(dx, dy);
+                    let minDist = n1.radius + n2.radius + 25;
+
+                    if (dist < minDist && dist > 0) {
+                        let force = (minDist - dist) / minDist * repulseStrength;
+                        let pushX = (dx / dist) * force * 0.1;
+                        let pushY = (dy / dist) * force * 0.1;
+
+                        n1.vx -= pushX;
+                        n1.vy -= pushY;
+                        n2.vx += pushX;
+                        n2.vy += pushY;
+                    }
+                }
+
+                // Apply velocity and drag friction
+                n1.vx *= friction;
+                n1.vy *= friction;
+                n1.x += n1.vx;
+                n1.y += n1.vy;
+
+                // Contain nodes inside screen boundary walls cleanly
+                n1.x = Math.max(n1.radius + 10, Math.min(width - n1.radius - 10, n1.x));
+                n1.y = Math.max(n1.radius + 10, Math.min(height - n1.radius - 10, n1.y));
+            }
+        }
+
+        // Render Frame Loop
+        function draw() {
+            updatePhysics();
+            ctx.clearRect(0, 0, width, height);
+
+            // 1. Draw Structural Network Connective Webbing
+            ctx.lineWidth = 0.8;
             for (let i = 0; i < nodes.length; i++) {
                 for (let j = i + 1; j < nodes.length; j++) {
-                    const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
-                    // Connect close nodes or same-category items
-                    if (dist < 180 || (nodes[i].category === nodes[j].category && dist < 260)) {
+                    let n1 = nodes[i];
+                    let n2 = nodes[j];
+                    let dist = Math.hypot(n2.x - n1.x, n2.y - n1.y);
+
+                    // Draw clean line connections if they are in the same category and close by
+                    if (n1.category === n2.category && dist < 160) {
                         ctx.beginPath();
-                        ctx.moveTo(nodes[i].x, nodes[j].x);
-                        ctx.lineTo(nodes[j].x, nodes[j].y);
-                        
-                        // Create gradient connection or default dim line
-                        ctx.strokeStyle = nodes[i].category === nodes[j].category 
-                            ? categories[nodes[i].category].color + "1a" 
-                            : "rgba(45, 54, 69, 0.2)";
+                        ctx.moveTo(n1.x, n1.y);
+                        ctx.lineTo(n2.x, n2.y);
+                        ctx.strokeStyle = categories[n1.category].color + "1f"; // Smooth subtle opacity
                         ctx.stroke();
                     }
                 }
             }
 
-            // 2. Draw Interactive Nodes
+            // 2. Draw Floating Identity Nodes
             nodes.forEach(node => {
                 ctx.save();
                 ctx.translate(node.x, node.y);
 
-                const color = categories[node.category].color;
-                const isHovered = selectedNode === node;
+                const accentColor = categories[node.category].color;
+                const active = (hoveredNode === node || selectedNode === node);
 
-                // Outer Sci-Fi Ring
+                // Tech Outer Aura Ring
                 ctx.beginPath();
-                ctx.arc(0, 0, node.radius + 5, 0, Math.PI * 2);
-                ctx.strokeStyle = isHovered ? color : "rgba(31, 36, 44, 0.6)";
-                ctx.lineWidth = isHovered ? 2 : 1;
+                ctx.arc(0, 0, node.radius + 4, 0, Math.PI * 2);
+                ctx.strokeStyle = active ? accentColor : "rgba(255, 255, 255, 0.08)";
+                ctx.lineWidth = active ? 2 : 1;
                 ctx.stroke();
-                
-                if (isHovered) {
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = color;
+
+                if (active) {
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = accentColor;
                 }
 
-                // Node Base Core Circle
+                // Inner Masked Photo Area
                 ctx.beginPath();
                 ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
-                ctx.fillStyle = "#0d1117";
+                ctx.fillStyle = "#0c1017";
                 ctx.fill();
-
-                // Profile Image Clip masking
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(0, 0, node.radius - 2, 0, Math.PI * 2);
                 ctx.clip();
+
+                // Advanced Centered Image Fitting (Aspect Ratio Lock, prevents stretching)
                 if (node.imgObj) {
-                    ctx.drawImage(node.imgObj, -node.radius, -node.radius, node.radius * 2, node.radius * 2);
-                } else {
-                    ctx.fillStyle = "#21262d";
-                    ctx.fill();
+                    let img = node.imgObj;
+                    let size = node.radius * 2;
+                    let hRatio = img.width / size;
+                    let vRatio = img.height / size;
+                    let ratio  = Math.min(hRatio, vRatio);
+                    let sWidth = size * ratio;
+                    let sHeight = size * ratio;
+                    let sX = (img.width - sWidth) / 2;
+                    let sY = (img.height - sHeight) / 2;
+                    
+                    ctx.drawImage(img, sX, sY, sWidth, sHeight, -node.radius, -node.radius, size, size);
                 }
+
                 ctx.restore();
 
-                // Mini Category tag badge underneath node if hovered
-                if (isHovered) {
-                    ctx.font = "bold 9px sans-serif";
-                    ctx.fillStyle = color;
+                // Draw Name text cleanly right beneath the circle node if hovered
+                if (hoveredNode === node) {
+                    ctx.font = "10px sans-serif";
+                    ctx.fillStyle = "#ffffff";
                     ctx.textAlign = "center";
-                    ctx.fillText(node.name.toUpperCase(), 0, node.radius + 20);
+                    ctx.letterSpacing = "1px";
+                    ctx.fillText(node.name.toUpperCase(), node.x, node.y + node.radius + 18);
                 }
-
-                ctx.restore();
             });
 
-            ctx.restore();
+            requestAnimationFrame(draw);
         }
 
-        // Coordinate helper translation
-        function getMousePos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            
-            // Map raw screenspace coordinates to scaled/panned canvas context matrix
-            return {
-                x: (clientX - rect.left - transform.x) / transform.scale,
-                y: (clientY - rect.top - transform.y) / transform.scale
-            };
+        // Coordinate Matching & Pointer Actions
+        function getNodeAtPos(x, y) {
+            return nodes.find(node => Math.hypot(node.x - x, node.y - y) < node.radius + 8);
         }
 
-        // Click / Touch interaction parsing
-        function getNodeAtPos(pos) {
-            return nodes.find(node => Math.hypot(node.x - pos.x, node.y - pos.y) < node.radius + 5);
-        }
-
-        // Interactivity Event Handlers
         canvas.addEventListener('mousedown', (e) => {
-            const mousePos = getMousePos(e);
-            const clickedNode = getNodeAtPos(mousePos);
-
-            if (clickedNode) {
-                openProfile(clickedNode);
-                selectedNode = clickedNode;
-                draw();
-            } else {
-                isDragging = true;
-                startPan = { x: e.clientX - transform.x, y: e.clientY - transform.y };
+            const clicked = getNodeAtPos(e.clientX, e.clientY);
+            if (clicked) {
+                isDraggingNode = clicked;
+                selectedNode = clicked;
+                openProfile(clicked);
             }
         });
 
         canvas.addEventListener('mousemove', (e) => {
-            const mousePos = getMousePos(e);
-            
-            if (isDragging) {
-                transform.x = e.clientX - startPan.x;
-                transform.y = e.clientY - startPan.y;
-                draw();
+            if (isDraggingNode) {
+                isDraggingNode.x = e.clientX;
+                isDraggingNode.y = e.clientY;
+                isDraggingNode.vx = 0;
+                isDraggingNode.vy = 0;
             } else {
-                // Dynamic Hover Highlights
-                const prevSelected = selectedNode;
-                selectedNode = getNodeAtPos(mousePos);
-                if (selectedNode !== prevSelected) draw();
+                hoveredNode = getNodeAtPos(e.clientX, e.clientY);
             }
         });
 
-        window.addEventListener('mouseup', () => { isDragging = false; });
+        window.addEventListener('mouseup', () => { isDraggingNode = false; });
 
-        // Wheel Zoom Controls
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const zoomFactor = 1.05;
-            if (e.deltaY < 0 && transform.scale < 2) transform.scale *= zoomFactor;
-            if (e.deltaY > 0 && transform.scale > 0.4) transform.scale /= zoomFactor;
-            draw();
-        }, { passive: false });
+        // Touch Support for Screens
+        canvas.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            const clicked = getNodeAtPos(touch.clientX, touch.clientY);
+            if (clicked) { isDraggingNode = clicked; selectedNode = clicked; openProfile(clicked); }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDraggingNode) return;
+            const touch = e.touches[0];
+            isDraggingNode.x = touch.clientX;
+            isDraggingNode.y = touch.clientY;
+        });
+        window.addEventListener('touchend', () => { isDraggingNode = false; });
 
-        // UI Drawer Actions
+        // Interface Drawer Slide Operations
         function openProfile(node) {
             document.getElementById('drawer-img').src = node.imgUrl;
-            document.getElementById('drawer-img').style.borderColor = categories[node.category].color;
             document.getElementById('drawer-name').innerText = node.name;
             
             const tag = document.getElementById('drawer-tag');
             tag.innerText = node.category;
             tag.style.color = categories[node.category].color;
-            tag.style.background = categories[node.category].bg;
+            tag.style.border = `1px solid ${categories[node.category].color}33`;
 
             document.getElementById('drawer-bio').innerText = node.bio;
             drawer.classList.add('open');
@@ -427,21 +446,16 @@
         function closeDrawer() {
             drawer.classList.remove('open');
             selectedNode = null;
-            draw();
         }
 
-        // Window resizing correction
         window.addEventListener('resize', () => {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            draw();
         });
 
-        // Initialize mapping
+        // Start App
         generateData();
-        // Shift global startup coordinates slightly left to center nicely with open sidebar layout
-        transform.x = window.innerWidth * 0.05; 
-        draw();
+        requestAnimationFrame(draw);
     </script>
 </body>
 </html>
