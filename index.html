@@ -31,21 +31,26 @@
             overflow: hidden;
             width: 100vw;
             height: 100vh;
+            user-select: none;
         }
 
-        #network-canvas {
+        /* Three.js Container */
+        #canvas-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 1;
-            cursor: default; 
-            transition: filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: grab;
+        }
+        #canvas-container:active {
+            cursor: grabbing;
         }
 
-        body.modal-active #network-canvas {
+        body.modal-active #canvas-container {
             filter: blur(12px) brightness(0.2);
+            pointer-events: none;
         }
 
         header {
@@ -71,36 +76,33 @@
             margin-top: 5px;
         }
 
-        .sector-header {
+        /* Pure CSS HUD Labels over the 3D Engine */
+        .hud-legend {
             position: absolute;
+            bottom: 40px;
+            left: 35px;
             z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             pointer-events: none;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.75rem;
+            letter-spacing: 1.5px;
             font-weight: 600;
-            padding-bottom: 6px;
-            width: 42%;
-            transition: opacity 0.4s;
         }
-        .sector-header::after {
-            content: '';
-            display: block;
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg, currentColor, transparent);
-            margin-top: 6px;
-            opacity: 0.25;
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
         }
-        body.modal-active .sector-header { opacity: 0.03; }
 
-        /* Spread headers out across the full canvas width */
-        #header-camp-leads { top: 10%; left: 6%; color: var(--color-camp-lead); }
-        #header-camp { top: 52%; left: 6%; color: var(--color-camp); }
-        #header-wil-leads { top: 10%; left: 54%; color: var(--color-wil-lead); }
-        #header-wil { top: 52%; left: 54%; color: var(--color-wil); }
-
-        /* Widescreen Dossier Modal Overlay */
+        /* Premium Widescreen Dossier Card */
         .modal-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -151,9 +153,7 @@
         }
         .close-btn:hover { color: var(--text-main); }
 
-        .modal-left {
-            flex-shrink: 0;
-        }
+        .modal-left { flex-shrink: 0; }
         .modal-avatar {
             width: 180px;
             height: 180px;
@@ -196,31 +196,42 @@
             width: 100%;
         }
 
-        .grid-overlay {
+        /* Clean Name Overlay when Hovering 3D Objects */
+        #hover-label {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.006) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255, 255, 255, 0.006) 1px, transparent 1px);
-            background-size: 50px 50px;
+            z-index: 20;
             pointer-events: none;
-            z-index: 0;
+            background: rgba(6, 8, 12, 0.9);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: none;
+            transform: translate(-50%, -140%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-    <div class="grid-overlay"></div>
-    <canvas id="network-canvas"></canvas>
+    <div id="canvas-container"></div>
+    <div id="hover-label"></div>
 
     <header>
         <h1>The k2i Academy Team</h1>
-        <p>Lassonde School of Engineering // INFRASTRUCTURE GRID</p>
+        <p>Lassonde School of Engineering // 3D SPHERICAL MATRIX</p>
     </header>
 
-    <div id="header-camp-leads" class="sector-header">Community Camp Leads</div>
-    <div id="header-camp" class="sector-header">Community Camp Mentors</div>
-    <div id="header-wil-leads" class="sector-header">Work-Integrated Learning Leads</div>
-    <div id="header-wil" class="sector-header">Work-Integrated Learning Mentors</div>
+    <div class="hud-legend">
+        <div class="legend-item"><div class="legend-color" style="background: var(--color-camp-lead)"></div>Community Camp Leads</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--color-camp)"></div>Community Camp Mentors</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--color-wil-lead)"></div>Work-Integrated Learning Leads</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--color-wil)"></div>Work-Integrated Learning Mentors</div>
+    </div>
 
     <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-card">
@@ -237,247 +248,279 @@
     </div>
 
     <script>
-        const canvas = document.getElementById('network-canvas');
-        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+        const hoverLabel = document.getElementById('hover-label');
         const modal = document.getElementById('modal-overlay');
 
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
+        let scene, camera, renderer, globeGroup;
+        let nodesArray = [];
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        
+        // Interaction Tracking Variables
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let targetRotation = { x: 0, y: 0 };
+        let currentRotation = { x: 0, y: 0 };
+        let hoveredMesh = null;
 
-        // Spread targets out significantly across the full width and height
-        const categories = {
-            "Community Camp Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.08)", targetX: 0.26, targetY: 0.30, circleRadius: 110 },
-            "Community Camp Mentors": { color: "#00ffd2", bg: "rgba(0,255,210,0.08)", targetX: 0.26, targetY: 0.74, innerRadius: 90, outerRadius: 170 },
-            "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.08)", targetX: 0.74, targetY: 0.30, circleRadius: 110 },
-            "Work-Integrated Learning Mentors": { color: "#9d4edd", bg: "rgba(157,78,221,0.08)", targetX: 0.74, targetY: 0.74, innerRadius: 90, outerRadius: 170 }
+        const categoryMeta = {
+            "Community Camp Leads": { color: 0x00bcff, hexStr: "#00bcff", bg: "rgba(0,188,255,0.08)" },
+            "Community Camp Mentors": { color: 0x00ffd2, hexStr: "#00ffd2", bg: "rgba(0,255,210,0.08)" },
+            "Work-Integrated Learning Leads": { color: 0xff007f, hexStr: "#ff007f", bg: "rgba(255,0,127,0.08)" },
+            "Work-Integrated Learning Mentors": { color: 0x9d4edd, hexStr: "#9d4edd", bg: "rgba(157,78,221,0.08)" }
         };
 
-        let nodes = [];
-        let hoveredNode = null;
+        function init3D() {
+            // 1. Scene setup
+            scene = new THREE.Scene();
+            
+            // 2. Camera setup
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 18;
 
-        // Cinematic linear interpolation factor for completely non-vibrational movement
-        const easeFactor = 0.10; 
+            // 3. Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
 
-        function generateData() {
-            nodes = [];
-            const catKeys = Object.keys(categories);
+            // 4. Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
+
+            // Group to contain everything inside the globe
+            globeGroup = new THREE.Group();
+            scene.add(globeGroup);
+
+            buildTeamSphere();
+            addEventListeners();
+            animate();
+        }
+
+        function buildTeamSphere() {
             const totalPeople = 45;
+            const radius = 5.5; // Radius of the 3D globe structure
+            const textureLoader = new THREE.TextureLoader();
 
-            let groupTrackers = { "Community Camp Leads": 0, "Community Camp Mentors": 0, "Work-Integrated Learning Leads": 0, "Work-Integrated Learning Mentors": 0 };
-
+            // Distribute all 45 nodes perfectly across 3D spherical coordinates using Fibonacci Sphere algorithm
             for (let i = 0; i < totalPeople; i++) {
                 let category;
-                if (i < 5) category = catKeys[0];
-                else if (i < 22) category = catKeys[1];
-                else if (i < 27) category = catKeys[2];
-                else category = catKeys[3];
+                if (i < 5) category = "Community Camp Leads";
+                else if (i < 22) category = "Community Camp Mentors";
+                else if (i < 27) category = "Work-Integrated Learning Leads";
+                else category = "Work-Integrated Learning Mentors";
 
-                let config = categories[category];
-                let idx = groupTrackers[category]++;
+                const meta = categoryMeta[category];
+
+                // Golden ratio spacing distribution (Math ensures zero structural stacking)
+                const phi = Math.acos(1 - 2 * (i + 0.5) / totalPeople);
+                const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
+
+                const x = radius * Math.sin(phi) * Math.cos(theta);
+                const y = radius * Math.sin(phi) * Math.sin(theta);
+                const z = radius * Math.cos(phi);
+
+                // Create Profile Node Geometry (Circular Disc Plane facing outwards)
+                const geometry = new THREE.CircleGeometry(0.42, 32);
                 
-                let homeX, homeY;
+                // Outer tech ring boundary outline mesh
+                const ringGeo = new THREE.RingGeometry(0.44, 0.46, 32);
+                const ringMat = new THREE.MeshBasicMaterial({ color: meta.color, side: THREE.DoubleSide });
+                const ringMesh = new THREE.Mesh(ringGeo, ringMat);
 
-                // 1. Expanded Circle Design for Leads (using full space)
-                if (category.includes("Leads")) {
-                    let angle = (idx / 5) * Math.PI * 2 - Math.PI / 2; 
-                    homeX = (width * config.targetX) + Math.cos(angle) * config.circleRadius;
-                    homeY = (height * config.targetY) + Math.sin(angle) * config.circleRadius;
-                } 
-                // 2. Expanded Concentric Circle Layout for Mentors
-                else {
-                    let ringIndex = idx % 2; 
-                    let radius = ringIndex === 0 ? config.innerRadius : config.outerRadius; 
-                    let nodesInRing = ringIndex === 0 ? 6 : 11;
-                    
-                    let angle = (idx / nodesInRing) * Math.PI * 2;
-                    homeX = (width * config.targetX) + Math.cos(angle) * radius;
-                    homeY = (height * config.targetY) + Math.sin(angle) * radius;
-                }
-
-                nodes.push({
-                    id: i,
-                    name: `Staff Member ${i + 1}`,
-                    category: category,
-                    bio: `Dossier overview data for k2i Academy team asset. Specialized in delivering engineering programming under the Lassonde School framework. External infrastructure matrix component.`,
-                    imgUrl: `https://i.pravatar.cc/150?img=${(i % 70) + 1}`,
-                    x: homeX,
-                    y: homeY,
-                    homeX: homeX,
-                    homeY: homeY,
-                    baseRadius: 26,
-                    radius: 26,
-                    targetRadius: 26,
-                    imgObj: null
+                // Profile Image placeholder texturing mapped to mesh faces
+                const imgUrl = `https://i.pravatar.cc/150?img=${(i % 70) + 1}`;
+                const material = new THREE.MeshBasicMaterial({
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.9
                 });
-            }
 
-            nodes.forEach(node => {
-                const img = new Image();
-                img.src = node.imgUrl;
-                img.onload = () => { node.imgObj = img; };
-            });
-        }
+                // Async image load processing
+                textureLoader.load(imgUrl, (texture) => {
+                    material.map = texture;
+                    material.needsUpdate = true;
+                });
 
-        function updatePhysics() {
-            if (document.body.classList.contains('modal-active')) return;
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.add(ringMesh); // Nest outlining ring directly into the center node transform hierarchy
 
-            for (let i = 0; i < nodes.length; i++) {
-                let node = nodes[i];
-
-                let targetX = node.homeX;
-                let targetY = node.homeY;
-
-                // Smooth virtual mathematical lens distortion (No rigid structural bouncing)
-                if (hoveredNode && hoveredNode !== node) {
-                    let dx = node.homeX - hoveredNode.homeX;
-                    let dy = node.homeY - hoveredNode.homeY;
-                    let dist = Math.hypot(dx, dy);
-                    
-                    // Increased push radius match to fit the new spacious design layout
-                    let pushRadius = 220; 
-
-                    if (dist < pushRadius && dist > 0) {
-                        // Gentle, pure sine wave dropoff entirely removes structural jitter
-                        let strength = Math.sin((1 - dist / pushRadius) * Math.PI * 0.5) * 55;
-                        targetX += (dx / dist) * strength;
-                        targetY += (dy / dist) * strength;
-                    }
-                }
-
-                // Smooth linear interpolation (lerp) onto targets
-                node.x += (targetX - node.x) * easeFactor;
-                node.y += (targetY - node.y) * easeFactor;
-
-                // Dynamic sizing map transformations on hover targeting
-                node.targetRadius = (hoveredNode === node) ? 44 : node.baseRadius;
-                node.radius += (node.targetRadius - node.radius) * 0.15;
-            }
-        }
-
-        function draw() {
-            updatePhysics();
-            ctx.clearRect(0, 0, width, height);
-
-            // 1. Draw Geometric Technical Ring Guides
-            Object.keys(categories).forEach(catKey => {
-                let config = categories[catKey];
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = config.color + "12"; 
+                // Position node elements on the 3D grid layout coordinates
+                mesh.position.set(x, y, z);
                 
-                if (catKey.includes("Leads")) {
-                    ctx.beginPath();
-                    ctx.arc(width * config.targetX, height * config.targetY, config.circleRadius, 0, Math.PI * 2);
-                    ctx.stroke();
-                } else {
-                    // Concentric background geometric guides for the mentors
-                    ctx.beginPath();
-                    ctx.arc(width * config.targetX, height * config.targetY, config.innerRadius, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.arc(width * config.targetX, height * config.targetY, config.outerRadius, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-            });
+                // Point meshes perfectly outward from center origin point to look like a clean grid panel globe
+                mesh.lookAt(0, 0, 0);
+                mesh.rotateY(Math.PI); // Invert face mapping so it looks directly at camera correctly
 
-            // 2. Draw Clean Network Line Connections
-            Object.keys(categories).forEach(catKey => {
-                let catNodes = nodes.filter(n => n.category === catKey);
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = categories[catKey].color + "18"; 
+                // Store critical personnel dataset directly inside the mesh variables container object
+                mesh.userData = {
+                    id: i,
+                    name: `Team Member ${i + 1}`,
+                    category: category,
+                    bio: `Dossier overview data matrix for k2i Academy team asset. Specialized in delivering engineering programming under the Lassonde School framework. Integrated 3D framework component system.`,
+                    imgUrl: imgUrl,
+                    baseScale: 1.0,
+                    meta: meta
+                };
 
-                ctx.beginPath();
-                for (let i = 0; i < catNodes.length; i++) {
-                    for (let j = i + 1; j < catNodes.length; j++) {
-                        let dist = Math.hypot(catNodes[j].x - catNodes[i].x, catNodes[j].y - catNodes[i].y);
-                        // Open spacing thresholds allow clean cross-network structural mapping lines
-                        if (dist < 210) { 
-                            ctx.moveTo(catNodes[i].x, catNodes[i].y);
-                            ctx.lineTo(catNodes[j].x, catNodes[j].y);
+                globeGroup.add(mesh);
+                nodesArray.push(mesh);
+            }
+
+            // Draw structural constellations connecting lines between nodes inside categories
+            Object.keys(categoryMeta).forEach(catKey => {
+                const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
+                const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.15 });
+                
+                for (let i = 0; i < catMeshes.length; i++) {
+                    for (let j = i + 1; j < catMeshes.length; j++) {
+                        let dist = catMeshes[i].position.distanceTo(catMeshes[j].position);
+                        if (dist < 4.5) { // Connection threshold limit
+                            const points = [catMeshes[i].position, catMeshes[j].position];
+                            const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+                            const line = new THREE.Line(lineGeo, lineMat);
+                            globeGroup.add(line);
                         }
                     }
                 }
-                ctx.stroke();
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Liquid rotation handling with automatic damping decay factor physics
+            if (!isDragging) {
+                targetRotation.y += 0.0015; // Slow ambient spin tracking rotation when idle
+            }
+
+            currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
+            currentRotation.y += (targetRotation.y - currentRotation.y) * 0.1;
+
+            globeGroup.rotation.x = currentRotation.x;
+            globeGroup.rotation.y = currentRotation.y;
+
+            // Force profile ring elements to dynamically face perspective tracking camera coordinates
+            nodesArray.forEach(node => {
+                let targetScale = node.userData.baseScale;
+                if (hoveredMesh === node) {
+                    targetScale = 1.35; // Expand node size uniformly up on hover focus transitions
+                }
+                node.scale.set(targetScale, targetScale, targetScale);
             });
 
-            // 3. Render Avatars
-            nodes.forEach(node => {
-                ctx.save();
-                ctx.translate(node.x, node.y);
+            renderer.render(scene, camera);
+        }
 
-                const accentColor = categories[node.category].color;
-                const isHovered = (hoveredNode === node);
+        function addEventListeners() {
+            window.addEventListener('resize', onWindowResize);
+            
+            // Interaction Event Maps
+            window.addEventListener('mousedown', (e) => {
+                if (document.body.classList.contains('modal-active')) return;
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
 
-                ctx.beginPath();
-                ctx.arc(0, 0, node.radius + 4, 0, Math.PI * 2);
-                ctx.strokeStyle = isHovered ? accentColor : "rgba(255, 255, 255, 0.07)";
-                ctx.lineWidth = isHovered ? 2 : 1;
-                ctx.stroke();
+            window.addEventListener('mousemove', onMouseMove);
+            
+            window.addEventListener('mouseup', () => { isDragging = false; });
 
-                if (isHovered) {
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = accentColor;
-                }
+            // Touch support
+            window.addEventListener('touchstart', (e) => {
+                if (document.body.classList.contains('modal-active')) return;
+                isDragging = true;
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
 
-                ctx.beginPath();
-                ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
-                ctx.fillStyle = "#0c1017";
-                ctx.fill();
-                ctx.clip();
+            window.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const deltaMove = {
+                    x: e.touches[0].clientX - previousMousePosition.x,
+                    y: e.touches[0].clientY - previousMousePosition.y
+                };
+                targetRotation.y += deltaMove.x * 0.005;
+                targetRotation.x += deltaMove.y * 0.005;
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
 
-                if (node.imgObj) {
-                    let img = node.imgObj;
-                    let size = node.radius * 2;
-                    let hRatio = img.width / size;
-                    let vRatio = img.height / size;
-                    let ratio  = Math.min(hRatio, vRatio);
-                    let sWidth = size * ratio;
-                    let sHeight = size * ratio;
-                    let sX = (img.width - sWidth) / 2;
-                    let sY = (img.height - sHeight) / 2;
+            window.addEventListener('touchend', () => { isDragging = false; });
+
+            window.addEventListener('click', onCanvasClick);
+        }
+
+        function onMouseMove(e) {
+            // Drag navigation logic
+            if (isDragging) {
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
+                targetRotation.y += deltaMove.x * 0.005;
+                targetRotation.x += deltaMove.y * 0.005;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+                return;
+            }
+
+            // Raycasting cursor detection loop
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(nodesArray);
+
+            if (intersects.length > 0) {
+                // Find nearest mesh object intercepting path vectors
+                const hitMesh = intersects[0].object;
+                
+                if (hoveredMesh !== hitMesh) {
+                    hoveredMesh = hitMesh;
+                    container.style.cursor = 'pointer';
                     
-                    ctx.drawImage(img, sX, sY, sWidth, sHeight, -node.radius, -node.radius, size, size);
+                    // Show custom HUD text label tracking
+                    hoverLabel.style.display = 'block';
+                    hoverLabel.innerText = hoveredMesh.userData.name;
+                    hoverLabel.style.borderColor = hoveredMesh.userData.meta.hexStr;
+                    hoverLabel.style.color = "#ffffff";
                 }
-                ctx.restore();
-
-                if (isHovered) {
-                    ctx.font = "bold 10px sans-serif";
-                    ctx.fillStyle = "#ffffff";
-                    ctx.textAlign = "center";
-                    ctx.letterSpacing = "1px";
-                    ctx.shadowBlur = 4;
-                    ctx.shadowColor = "#000000";
-                    ctx.fillText(node.name.toUpperCase(), node.x, node.y + node.radius + 18);
-                }
-            });
-
-            requestAnimationFrame(draw);
+                
+                // Track mouse coordinates dynamically for CSS tag positions
+                hoverLabel.style.left = `${e.clientX}px`;
+                hoverLabel.style.top = `${e.clientY}px`;
+            } else {
+                hoveredMesh = null;
+                container.style.cursor = isDragging ? 'grabbing' : 'grab';
+                hoverLabel.style.display = 'none';
+            }
         }
 
-        function getNodeAtPos(x, y) {
-            return nodes.find(node => Math.hypot(node.x - x, node.y - y) < node.radius + 4);
+        function onCanvasClick(e) {
+            if (document.body.classList.contains('modal-active')) return;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(nodesArray);
+
+            if (intersects.length > 0) {
+                openModal(intersects[0].object.userData);
+            }
         }
 
-        canvas.addEventListener('click', (e) => {
-            const clicked = getNodeAtPos(e.clientX, e.clientY);
-            if (clicked) openModal(clicked);
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            hoveredNode = getNodeAtPos(e.clientX, e.clientY);
-            canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
-        });
-
-        function openModal(node) {
-            document.getElementById('modal-img').src = node.imgUrl;
-            document.getElementById('modal-img').style.borderColor = categories[node.category].color;
-            document.getElementById('modal-name').innerText = node.name;
+        function openModal(data) {
+            document.getElementById('modal-img').src = data.imgUrl;
+            document.getElementById('modal-img').style.borderColor = data.meta.hexStr;
+            document.getElementById('modal-name').innerText = data.name;
             
             const tag = document.getElementById('modal-tag');
-            tag.innerText = node.category;
-            tag.style.color = categories[node.category].color;
-            tag.style.background = categories[node.category].bg;
+            tag.innerText = data.category;
+            tag.style.color = data.meta.hexStr;
+            tag.style.background = data.meta.bg;
 
-            document.getElementById('modal-bio').innerText = node.bio;
+            document.getElementById('modal-bio').innerText = data.bio;
             
             document.body.classList.add('modal-active');
             modal.classList.add('open');
@@ -492,14 +535,14 @@
             if (e.target === modal) forceCloseModal();
         }
 
-        window.addEventListener('resize', () => {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            generateData();
-        });
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
 
-        generateData();
-        requestAnimationFrame(draw);
+        // Run framework execution stack components
+        init3D();
     </script>
 </body>
 </html>
