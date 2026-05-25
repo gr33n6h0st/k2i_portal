@@ -296,8 +296,6 @@
             const totalPeople = 45;
             const radius = 5.5; 
             const textureLoader = new THREE.TextureLoader();
-            
-            // Forces proper cross-origin permissions
             textureLoader.setCrossOrigin('anonymous');
 
             for (let i = 0; i < totalPeople; i++) {
@@ -327,7 +325,6 @@
                     transparent: false
                 });
 
-                // FIXED: Use a highly reliable developer image CDN that supports safe local CORS texturing out of the box
                 const imageSeed = 100 + i;
                 const imgUrl = `https://picsum.photos/id/${imageSeed}/150/150`;
 
@@ -352,7 +349,7 @@
                     name: `Team Member ${i + 1}`,
                     category: category,
                     bio: `Dossier overview data matrix for k2i Academy team asset. Specialized in delivering engineering programming under the Lassonde School framework. Integrated 3D framework component system.`,
-                    imgUrl: imgUrl, // Fully synchronized to match the exact same node texture link
+                    imgUrl: imgUrl,
                     baseScale: 1.0,
                     meta: meta
                 };
@@ -366,7 +363,7 @@
                 const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.35 });
                 for (let i = 0; i < catMeshes.length; i++) {
                     for (let j = i + 1; j < catMeshes.length; j++) {
-                        if (catMeshes[i].position.distanceTo(catMeshes[j].position) < 4.8) { 
+                        if (catMeshes[i].position.distanceTo(catMeshes[j].position) < 6.5) { 
                             const lineGeo = new THREE.BufferGeometry().setFromPoints([catMeshes[i].position, catMeshes[j].position]);
                             globeGroup.add(new THREE.Line(lineGeo, lineMat));
                         }
@@ -378,7 +375,6 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // CONTINUOUS GLOBE SPINNING LOOP
             if (!isDragging) {
                 targetRotation.y += ambientVelocityY; 
             }
