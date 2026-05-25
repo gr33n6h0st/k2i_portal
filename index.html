@@ -260,6 +260,10 @@
         let currentRotation = { x: 0, y: 0 };
         let hoveredMesh = null;
 
+        // Interactive Tracking Metrics
+        let dragTotalDistance = 0;
+        const ambientVelocityY = 0.0012;
+
         const categoryMeta = {
             "Community Camp Leads": { color: 0x00bcff, hexStr: "#00bcff", bg: "rgba(0,188,255,0.08)" },
             "Community Camp Mentors": { color: 0x00ffd2, hexStr: "#00ffd2", bg: "rgba(0,255,210,0.08)" },
@@ -316,12 +320,10 @@
 
                 const geometry = new THREE.CircleGeometry(0.42, 32);
                 
-                // FIXED: Thicker, bold color outer rings for definitive team grouping visual distinction
                 const ringGeo = new THREE.RingGeometry(0.43, 0.49, 32);
                 const ringMat = new THREE.MeshBasicMaterial({ color: meta.color, side: THREE.DoubleSide });
                 const ringMesh = new THREE.Mesh(ringGeo, ringMat);
 
-                // FIXED: Direct dark background rendering to prevent temporary white visual blocks while async loading images
                 const material = new THREE.MeshBasicMaterial({
                     color: 0x0c1017,
                     side: THREE.DoubleSide,
@@ -331,9 +333,8 @@
 
                 const imgUrl = `https://i.pravatar.cc/150?img=${(i % 70) + 1}`;
                 
-                // Clean image retrieval stream handling
                 textureLoader.load(imgUrl, (texture) => {
-                    material.color.setHex(0xffffff); // Reset overlay hue mask upon texture completion
+                    material.color.setHex(0xffffff); 
                     material.map = texture;
                     material.needsUpdate = true;
                 });
@@ -359,13 +360,12 @@
                 nodesArray.push(mesh);
             }
 
-            // FIXED: High-intensity, explicitly color-coded connection lines matching team hex definitions
             Object.keys(categoryMeta).forEach(catKey => {
                 const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
                 const lineMat = new THREE.LineBasicMaterial({ 
                     color: categoryMeta[catKey].color, 
                     transparent: true, 
-                    opacity: 0.35 // Higher visibility tracking line metrics
+                    opacity: 0.35 
                 });
                 
                 for (let i = 0; i < catMeshes.length; i++) {
@@ -385,9 +385,8 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            if (!isDragging) {
-                globeGroup.rotation.y += 0.0012; 
-            }
+            // FIXED: Continuous, non-blocking ambient spin updates even after dragging releases
+            targetRotation.y += ambientVelocityY; 
 
             currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
             currentRotation.y += (targetRotation.y - currentRotation.y) * 0.1;
@@ -412,16 +411,21 @@
             window.addEventListener('mousedown', (e) => {
                 if (document.body.classList.contains('modal-active')) return;
                 isDragging = true;
+                dragTotalDistance = 0; // Clear metric path offsets
                 previousMousePosition = { x: e.clientX, y: e.clientY };
             });
 
             window.addEventListener('mousemove', onMouseMove);
-            window.addEventListener('mouseup', () => { isDragging = false; });
+            
+            window.addEventListener('mouseup', () => { 
+                isDragging = false; 
+            });
 
-            // Mobile/Touch Support
+            // Touch Support
             window.addEventListener('touchstart', (e) => {
                 if (document.body.classList.contains('modal-active')) return;
                 isDragging = true;
+                dragTotalDistance = 0;
                 previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
             });
 
@@ -431,12 +435,16 @@
                     x: e.touches[0].clientX - previousMousePosition.x,
                     y: e.touches[0].clientY - previousMousePosition.y
                 };
+                dragTotalDistance += Math.hypot(deltaMove.x, deltaMove.y);
+                
                 targetRotation.y += deltaMove.x * 0.005;
                 targetRotation.x += deltaMove.y * 0.005;
                 previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
             });
 
             window.addEventListener('touchend', () => { isDragging = false; });
+            
+            // FIXED: Switched interaction execution matrix entirely to a standard safe click listener
             window.addEventListener('click', onCanvasClick);
         }
 
@@ -446,6 +454,9 @@
                     x: e.clientX - previousMousePosition.x,
                     y: e.clientY - previousMousePosition.y
                 };
+                // Accumulate pixel navigation paths to accurately verify drags vs clicks
+                dragTotalDistance += Math.hypot(deltaMove.x, deltaMove.y);
+
                 targetRotation.y += deltaMove.x * 0.005;
                 targetRotation.x += deltaMove.y * 0.005;
                 previousMousePosition = { x: e.clientX, y: e.clientY };
@@ -482,6 +493,12 @@
 
         function onCanvasClick(e) {
             if (document.body.classList.contains('modal-active')) return;
+
+            // FIXED: If user dragged cursor past a strict 5px threshold boundary, completely skip popup execution
+            if (dragTotalDistance > 5) return;
+
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(nodesArray);
