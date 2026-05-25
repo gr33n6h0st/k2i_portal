@@ -7,12 +7,12 @@
     <style>
         :root {
             --bg-color: #06080c;
-            --modal-bg: rgba(10, 14, 22, 0.95);
+            --modal-bg: rgba(10, 14, 22, 0.96);
             --border-color: rgba(45, 54, 69, 0.4);
             --text-main: #f0f3f6;
             --text-muted: #6e7681;
             
-            /* High-Tech Category Color Coding */
+            /* High-Tech Team Palette */
             --color-camp-lead: #00bcff;
             --color-camp: #00ffd2;
             --color-wil-lead: #ff007f;
@@ -41,28 +41,28 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            cursor: pointer;
-            transition: filter 0.4s ease;
+            /* Default cursor is a standard pointer arrow now */
+            cursor: default; 
+            transition: filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* Background Dimming when Modal is Active */
         body.modal-active #network-canvas {
-            filter: blur(8px) brightness(0.3);
+            filter: blur(10px) brightness(0.25);
         }
 
         /* HUD Main Header */
         header {
             position: absolute;
-            top: 30px;
-            left: 30px;
+            top: 35px;
+            left: 35px;
             z-index: 10;
             pointer-events: none;
             transition: opacity 0.4s;
         }
-        body.modal-active header { opacity: 0.2; }
+        body.modal-active header { opacity: 0.1; }
         
         header h1 {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             text-transform: uppercase;
             letter-spacing: 3px;
             font-weight: 500;
@@ -71,7 +71,7 @@
             font-size: 0.65rem;
             color: var(--text-muted);
             letter-spacing: 1.5px;
-            margin-top: 4px;
+            margin-top: 5px;
         }
 
         /* Fixed Section Layout Labels */
@@ -94,16 +94,16 @@
             height: 1px;
             background: linear-gradient(90deg, currentColor, transparent);
             margin-top: 6px;
-            opacity: 0.3;
+            opacity: 0.25;
         }
-        body.modal-active .sector-header { opacity: 0.1; }
+        body.modal-active .sector-header { opacity: 0.05; }
 
         #header-camp-leads { top: 12%; left: 6%; color: var(--color-camp-lead); }
         #header-camp { top: 54%; left: 6%; color: var(--color-camp); }
         #header-wil-leads { top: 12%; left: 54%; color: var(--color-wil-lead); }
         #header-wil { top: 54%; left: 54%; color: var(--color-wil); }
 
-        /* Centralized Clean Popup Modal */
+        /* Centralized Modal Overlay */
         .modal-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -114,7 +114,8 @@
             justify-content: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(4px);
         }
         .modal-overlay.open {
             opacity: 1;
@@ -126,11 +127,11 @@
             width: 440px;
             padding: 40px;
             border-radius: 6px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
             display: flex;
             flex-direction: column;
             align-items: center;
-            transform: scale(0.92);
+            transform: scale(0.95);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
         }
@@ -146,7 +147,6 @@
             color: var(--text-muted);
             font-size: 1.4rem;
             cursor: pointer;
-            transition: color 0.2s;
         }
         .close-btn:hover { color: var(--text-main); }
 
@@ -187,8 +187,8 @@
         .grid-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(255, 255, 255, 0.008) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.008) 1px, transparent 1px);
             background-size: 50px 50px;
             pointer-events: none;
             z-index: 0;
@@ -205,10 +205,10 @@
         <p>Lassonde School of Engineering // INFRASTRUCTURE GRID</p>
     </header>
 
-    <div id="header-camp-leads" class="sector-header">Community Leads</div>
-    <div id="header-camp" class="sector-header">Community Camp</div>
+    <div id="header-camp-leads" class="sector-header">Community Camp Leads</div>
+    <div id="header-camp" class="sector-header">Community Camp Mentors</div>
     <div id="header-wil-leads" class="sector-header">Work-Integrated Learning Leads</div>
-    <div id="header-wil" class="sector-header">Work-Integrated Learning</div>
+    <div id="header-wil" class="sector-header">Work-Integrated Learning Mentors</div>
 
     <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-card">
@@ -229,19 +229,18 @@
         let height = canvas.height = window.innerHeight;
 
         const categories = {
-            "Community Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.08)", targetX: 0.25, targetY: 0.32 },
-            "Community Camp": { color: "#00ffd2", bg: "rgba(0,255,210,0.08)", targetX: 0.25, targetY: 0.72 },
+            "Community Camp Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.08)", targetX: 0.25, targetY: 0.32 },
+            "Community Camp Mentors": { color: "#00ffd2", bg: "rgba(0,255,210,0.08)", targetX: 0.25, targetY: 0.72 },
             "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.08)", targetX: 0.75, targetY: 0.32 },
-            "Work-Integrated Learning": { color: "#9d4edd", bg: "rgba(157,78,221,0.08)", targetX: 0.75, targetY: 0.72 }
+            "Work-Integrated Learning Mentors": { color: "#9d4edd", bg: "rgba(157,78,221,0.08)", targetX: 0.75, targetY: 0.72 }
         };
 
         let nodes = [];
         let hoveredNode = null;
-        let selectedNode = null;
 
-        // Perfect Smooth Flow Dynamics Settings
-        const friction = 0.82;
-        const springStrength = 0.035;
+        // Ultra-Smooth Physics Configurations (High friction dampening removes jitters entirely)
+        const friction = 0.75; 
+        const springStrength = 0.018; 
 
         function generateData() {
             const catKeys = Object.keys(categories);
@@ -249,31 +248,32 @@
 
             for (let i = 0; i < totalPeople; i++) {
                 let category;
-                if (i < 4) category = catKeys[0];
-                else if (i < 20) category = catKeys[1];
-                else if (i < 24) category = catKeys[2];
-                else category = catKeys[3];
+                
+                // Distributing exactly 5 Leads per team, remaining are mentors
+                if (i < 5) category = catKeys[0];        // 5 Community Camp Leads
+                else if (i < 22) category = catKeys[1];  // 17 Community Camp Mentors
+                else if (i < 27) category = catKeys[2];  // 5 WIL Leads
+                else category = catKeys[3];              // 18 WIL Mentors
 
-                // Set ideal anchor home coordinates inside quadrants
                 let homeX = width * categories[category].targetX;
                 let homeY = height * categories[category].targetY;
 
-                // Stagger initial base configurations smoothly around home anchors
-                let angle = (i * 0.9) * Math.PI;
-                let radiusOffset = 40 + (i * 4);
+                // Organized golden-ratio layout patterns per segment to minimize natural text overlapping
+                let angle = (i * 1.4) * Math.PI;
+                let radiusOffset = 45 + ((i % 18) * 7.5);
 
                 let initialX = homeX + Math.cos(angle) * radiusOffset;
                 let initialY = homeY + Math.sin(angle) * radiusOffset;
 
                 nodes.push({
                     id: i,
-                    name: `Staff Member ${i + 1}`,
+                    name: `Team Member ${i + 1}`,
                     category: category,
-                    bio: `Systems operational profile data for specialized asset within the ${category} matrix department grid.`,
+                    bio: `Professional profile matrix data for k2i Academy team asset. Specialized in delivering engineering programming under the Lassonde School framework.`,
                     imgUrl: `https://i.pravatar.cc/150?img=${(i % 70) + 1}`,
                     x: initialX,
                     y: initialY,
-                    homeX: initialX, // Locked anchor point
+                    homeX: initialX,
                     homeY: initialY,
                     vx: 0, vy: 0,
                     baseRadius: 26,
@@ -291,44 +291,43 @@
         }
 
         function updatePhysics() {
-            // Disables background network movement calculations while modal interface is open
             if (document.body.classList.contains('modal-active')) return;
 
             for (let i = 0; i < nodes.length; i++) {
                 let n1 = nodes[i];
 
-                // 1. Return-to-Home Spring Anchor Force (Eliminates continuous drifts)
+                // 1. Fluid Return-to-Home Anchor Linear Calculation
                 let homeDX = n1.homeX - n1.x;
                 let homeDY = n1.homeY - n1.y;
                 n1.vx += homeDX * springStrength;
                 n1.vy += homeDY * springStrength;
 
-                // 2. Active Hover Push Field (Smoothly shoves nearby nodes out of alignment)
+                // 2. Continuous Fluid Wave Displacement (Dampened Push)
                 if (hoveredNode && hoveredNode !== n1) {
                     let hdx = n1.x - hoveredNode.x;
                     let hdy = n1.y - hoveredNode.y;
                     let hdist = Math.hypot(hdx, hdy);
-                    let pushRadius = 130; // Radius of force pushing other faces away
+                    let pushRadius = 150; // Dynamic push tracking radius
 
                     if (hdist < pushRadius && hdist > 0) {
                         let force = (pushRadius - hdist) / pushRadius;
-                        // Exponential curve gives a very clean, deliberate push
-                        let pushForce = force * force * 14; 
-                        n1.vx += (hdx / hdist) * pushForce;
-                        n1.vy += (hdy / hdist) * pushForce;
+                        // Smooth cubic easing curves completely strip out hard physics snap/jitter
+                        let smoothForce = force * force * force * 9; 
+                        n1.vx += (hdx / hdist) * smoothForce;
+                        n1.vy += (hdy / hdist) * smoothForce;
                     }
                 }
 
-                // 3. Self Inter-Node Guard Buffers (Prevents base text overlaps)
+                // 3. Inter-Node Protection Field
                 for (let j = i + 1; j < nodes.length; j++) {
                     let n2 = nodes[j];
                     let dx = n2.x - n1.x;
                     let dy = n2.y - n1.y;
                     let dist = Math.hypot(dx, dy);
-                    let bufferDist = n1.radius + n2.radius + 25;
+                    let bufferDist = n1.radius + n2.radius + 28;
 
                     if (dist < bufferDist && dist > 0) {
-                        let overlapForce = (bufferDist - dist) * 0.12;
+                        let overlapForce = (bufferDist - dist) * 0.05;
                         n1.vx -= (dx / dist) * overlapForce;
                         n1.vy -= (dy / dist) * overlapForce;
                         n2.vx += (dx / dist) * overlapForce;
@@ -336,15 +335,15 @@
                     }
                 }
 
-                // Apply velocity calculations with high friction dampening
+                // Inject processing loops onto coordinates
                 n1.vx *= friction;
                 n1.vy *= friction;
                 n1.x += n1.vx;
                 n1.y += n1.vy;
 
-                // Smoothly scale node radii up or down depending on hover state
-                n1.targetRadius = (hoveredNode === n1) ? 42 : n1.baseRadius;
-                n1.radius += (n1.targetRadius - n1.radius) * 0.2;
+                // Interpolate circle scale values
+                n1.targetRadius = (hoveredNode === n1) ? 44 : n1.baseRadius;
+                n1.radius += (n1.targetRadius - n1.radius) * 0.15;
             }
         }
 
@@ -352,17 +351,17 @@
             updatePhysics();
             ctx.clearRect(0, 0, width, height);
 
-            // 1. Draw Intracategory Connected Structural Lines
+            // 1. Draw Clean Linked Category Web Connections
             Object.keys(categories).forEach(catKey => {
                 let catNodes = nodes.filter(n => n.category === catKey);
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = categories[catKey].color + "22"; // 13% subtle path opacity
+                ctx.strokeStyle = categories[catKey].color + "26"; // Faint tech linking paths
 
                 ctx.beginPath();
                 for (let i = 0; i < catNodes.length; i++) {
                     for (let j = i + 1; j < catNodes.length; j++) {
                         let dist = Math.hypot(catNodes[j].x - catNodes[i].x, catNodes[j].y - catNodes[i].y);
-                        if (dist < 180) { 
+                        if (dist < 160) { 
                             ctx.moveTo(catNodes[i].x, catNodes[i].y);
                             ctx.lineTo(catNodes[j].x, catNodes[j].y);
                         }
@@ -371,7 +370,7 @@
                 ctx.stroke();
             });
 
-            // 2. Draw Nodes
+            // 2. Draw Floating Personnel Core Units
             nodes.forEach(node => {
                 ctx.save();
                 ctx.translate(node.x, node.y);
@@ -379,10 +378,10 @@
                 const accentColor = categories[node.category].color;
                 const isHovered = (hoveredNode === node);
 
-                // Glow ring
+                // High Tech Target Rings
                 ctx.beginPath();
                 ctx.arc(0, 0, node.radius + 4, 0, Math.PI * 2);
-                ctx.strokeStyle = isHovered ? accentColor : "rgba(255, 255, 255, 0.08)";
+                ctx.strokeStyle = isHovered ? accentColor : "rgba(255, 255, 255, 0.07)";
                 ctx.lineWidth = isHovered ? 2 : 1;
                 ctx.stroke();
 
@@ -391,7 +390,7 @@
                     ctx.shadowColor = accentColor;
                 }
 
-                // Profile clip
+                // Avatar Graphic Mapping Frame
                 ctx.beginPath();
                 ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
                 ctx.fillStyle = "#0c1017";
@@ -413,7 +412,7 @@
                 }
                 ctx.restore();
 
-                // Dynamic Name Label Render (Renders clearly since neighbours are pushed away)
+                // Text Display Render
                 if (isHovered) {
                     ctx.font = "bold 10px sans-serif";
                     ctx.fillStyle = "#ffffff";
@@ -430,6 +429,7 @@
             return nodes.find(node => Math.hypot(node.x - x, node.y - y) < node.radius + 4);
         }
 
+        // Click Event Parser
         canvas.addEventListener('click', (e) => {
             const clicked = getNodeAtPos(e.clientX, e.clientY);
             if (clicked) {
@@ -437,11 +437,18 @@
             }
         });
 
+        // Dynamic Cursor Mapping Handling (Only changes to finger pointer over faces)
         canvas.addEventListener('mousemove', (e) => {
             hoveredNode = getNodeAtPos(e.clientX, e.clientY);
+            
+            if (hoveredNode) {
+                canvas.style.cursor = 'pointer'; // Finger pointer ONLY on nodes
+            } else {
+                canvas.style.cursor = 'default'; // Regular arrow on background
+            }
         });
 
-        // Modal Presentation Methods
+        // Presentation Window Layer Operations
         function openModal(node) {
             document.getElementById('modal-img').src = node.imgUrl;
             document.getElementById('modal-img').style.borderColor = categories[node.category].color;
