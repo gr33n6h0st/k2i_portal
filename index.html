@@ -94,12 +94,13 @@
         }
         body.modal-active .sector-header { opacity: 0.03; }
 
-        #header-camp-leads { top: 12%; left: 5%; color: var(--color-camp-lead); }
-        #header-camp { top: 52%; left: 5%; color: var(--color-camp); }
-        #header-wil-leads { top: 12%; left: 53%; color: var(--color-wil-lead); }
-        #header-wil { top: 52%; left: 53%; color: var(--color-wil); }
+        /* Spread headers out across the full canvas width */
+        #header-camp-leads { top: 10%; left: 6%; color: var(--color-camp-lead); }
+        #header-camp { top: 52%; left: 6%; color: var(--color-camp); }
+        #header-wil-leads { top: 10%; left: 54%; color: var(--color-wil-lead); }
+        #header-wil { top: 52%; left: 54%; color: var(--color-wil); }
 
-        /* Expanded Premium Central Modal Overlay */
+        /* Widescreen Dossier Modal Overlay */
         .modal-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -243,21 +244,22 @@
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
 
+        // Spread targets out significantly across the full width and height
         const categories = {
-            "Community Camp Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.08)", targetX: 0.25, targetY: 0.32 },
-            "Community Camp Mentors": { color: "#00ffd2", bg: "rgba(0,255,210,0.08)", targetX: 0.25, targetY: 0.74 },
-            "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.08)", targetX: 0.75, targetY: 0.32 },
-            "Work-Integrated Learning Mentors": { color: "#9d4edd", bg: "rgba(157,78,221,0.08)", targetX: 0.75, targetY: 0.74 }
+            "Community Camp Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.08)", targetX: 0.26, targetY: 0.30, circleRadius: 110 },
+            "Community Camp Mentors": { color: "#00ffd2", bg: "rgba(0,255,210,0.08)", targetX: 0.26, targetY: 0.74, innerRadius: 90, outerRadius: 170 },
+            "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.08)", targetX: 0.74, targetY: 0.30, circleRadius: 110 },
+            "Work-Integrated Learning Mentors": { color: "#9d4edd", bg: "rgba(157,78,221,0.08)", targetX: 0.74, targetY: 0.74, innerRadius: 90, outerRadius: 170 }
         };
 
         let nodes = [];
         let hoveredNode = null;
 
-        // Perfectly tuned dampening variables for butter-smooth velocity transitions
-        const friction = 0.82; 
-        const springStrength = 0.02; 
+        // Cinematic linear interpolation factor for completely non-vibrational movement
+        const easeFactor = 0.10; 
 
         function generateData() {
+            nodes = [];
             const catKeys = Object.keys(categories);
             const totalPeople = 45;
 
@@ -275,18 +277,17 @@
                 
                 let homeX, homeY;
 
-                // 1. Pentagon circle placement for leads
+                // 1. Expanded Circle Design for Leads (using full space)
                 if (category.includes("Leads")) {
-                    let radius = 80; 
                     let angle = (idx / 5) * Math.PI * 2 - Math.PI / 2; 
-                    homeX = (width * config.targetX) + Math.cos(angle) * radius;
-                    homeY = (height * config.targetY) + Math.sin(angle) * radius;
+                    homeX = (width * config.targetX) + Math.cos(angle) * config.circleRadius;
+                    homeY = (height * config.targetY) + Math.sin(angle) * config.circleRadius;
                 } 
-                // 2. Dual-ring concentric concentric layouts for mentors
+                // 2. Expanded Concentric Circle Layout for Mentors
                 else {
                     let ringIndex = idx % 2; 
-                    let radius = ringIndex === 0 ? 65 : 130; 
-                    let nodesInRing = ringIndex === 0 ? 7 : 11;
+                    let radius = ringIndex === 0 ? config.innerRadius : config.outerRadius; 
+                    let nodesInRing = ringIndex === 0 ? 6 : 11;
                     
                     let angle = (idx / nodesInRing) * Math.PI * 2;
                     homeX = (width * config.targetX) + Math.cos(angle) * radius;
@@ -303,7 +304,6 @@
                     y: homeY,
                     homeX: homeX,
                     homeY: homeY,
-                    vx: 0, vy: 0,
                     baseRadius: 26,
                     radius: 26,
                     targetRadius: 26,
@@ -322,67 +322,35 @@
             if (document.body.classList.contains('modal-active')) return;
 
             for (let i = 0; i < nodes.length; i++) {
-                let n1 = nodes[i];
+                let node = nodes[i];
 
-                // Completely steady state lock if item is being actively hovered
-                if (hoveredNode === n1) {
-                    n1.vx = 0;
-                    n1.vy = 0;
-                    n1.x += (n1.homeX - n1.x) * 0.1;
-                    n1.y += (n1.homeY - n1.y) * 0.1;
-                    
-                    n1.targetRadius = 44;
-                    n1.radius += (n1.targetRadius - n1.radius) * 0.16;
-                    continue;
-                }
+                let targetX = node.homeX;
+                let targetY = node.homeY;
 
-                // Return to base anchoring force setup
-                let homeDX = n1.homeX - n1.x;
-                let homeDY = n1.homeY - n1.y;
-                n1.vx += homeDX * springStrength;
-                n1.vy += homeDY * springStrength;
-
-                // Eased Push dispersion physics loop
-                if (hoveredNode) {
-                    let hdx = n1.x - hoveredNode.x;
-                    let hdy = n1.y - hoveredNode.y;
-                    let hdist = Math.hypot(hdx, hdy);
-                    let pushRadius = 145; 
-
-                    if (hdist < pushRadius && hdist > 0) {
-                        let force = (pushRadius - hdist) / pushRadius;
-                        // Cubic force profile smooths out tracking jitter entirely
-                        let smoothForce = force * force * force * 9.5; 
-                        n1.vx += (hdx / hdist) * smoothForce;
-                        n1.vy += (hdy / hdist) * smoothForce;
-                    }
-                }
-
-                // Smooth Inter-node proximity buffer
-                for (let j = i + 1; j < nodes.length; j++) {
-                    let n2 = nodes[j];
-                    if (n2 === hoveredNode) continue; // Let the wave move out of the way seamlessly
-                    
-                    let dx = n2.x - n1.x;
-                    let dy = n2.y - n1.y;
+                // Smooth virtual mathematical lens distortion (No rigid structural bouncing)
+                if (hoveredNode && hoveredNode !== node) {
+                    let dx = node.homeX - hoveredNode.homeX;
+                    let dy = node.homeY - hoveredNode.homeY;
                     let dist = Math.hypot(dx, dy);
-                    let bufferDist = n1.radius + n2.radius + 24;
+                    
+                    // Increased push radius match to fit the new spacious design layout
+                    let pushRadius = 220; 
 
-                    if (dist < bufferDist && dist > 0) {
-                        let overlapForce = (bufferDist - dist) * 0.04;
-                        n1.vx -= (dx / dist) * overlapForce;
-                        n1.vy -= (dy / dist) * overlapForce;
+                    if (dist < pushRadius && dist > 0) {
+                        // Gentle, pure sine wave dropoff entirely removes structural jitter
+                        let strength = Math.sin((1 - dist / pushRadius) * Math.PI * 0.5) * 55;
+                        targetX += (dx / dist) * strength;
+                        targetY += (dy / dist) * strength;
                     }
                 }
 
-                // Apply velocity calculations with modern high friction dampening variables
-                n1.vx *= friction;
-                n1.vy *= friction;
-                n1.x += n1.vx;
-                n1.y += n1.vy;
+                // Smooth linear interpolation (lerp) onto targets
+                node.x += (targetX - node.x) * easeFactor;
+                node.y += (targetY - node.y) * easeFactor;
 
-                n1.targetRadius = n1.baseRadius;
-                n1.radius += (n1.targetRadius - n1.radius) * 0.16;
+                // Dynamic sizing map transformations on hover targeting
+                node.targetRadius = (hoveredNode === node) ? 44 : node.baseRadius;
+                node.radius += (node.targetRadius - node.radius) * 0.15;
             }
         }
 
@@ -390,7 +358,7 @@
             updatePhysics();
             ctx.clearRect(0, 0, width, height);
 
-            // 1. Draw Geometric Background Structural Layout Guide Rings
+            // 1. Draw Geometric Technical Ring Guides
             Object.keys(categories).forEach(catKey => {
                 let config = categories[catKey];
                 ctx.lineWidth = 1;
@@ -398,22 +366,31 @@
                 
                 if (catKey.includes("Leads")) {
                     ctx.beginPath();
-                    ctx.arc(width * config.targetX, height * config.targetY, 80, 0, Math.PI * 2);
+                    ctx.arc(width * config.targetX, height * config.targetY, config.circleRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                } else {
+                    // Concentric background geometric guides for the mentors
+                    ctx.beginPath();
+                    ctx.arc(width * config.targetX, height * config.targetY, config.innerRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(width * config.targetX, height * config.targetY, config.outerRadius, 0, Math.PI * 2);
                     ctx.stroke();
                 }
             });
 
-            // 2. Draw Network Line Connections
+            // 2. Draw Clean Network Line Connections
             Object.keys(categories).forEach(catKey => {
                 let catNodes = nodes.filter(n => n.category === catKey);
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = categories[catKey].color + "1c"; // Clean, non-distracting 11% line alpha
+                ctx.strokeStyle = categories[catKey].color + "18"; 
 
                 ctx.beginPath();
                 for (let i = 0; i < catNodes.length; i++) {
                     for (let j = i + 1; j < catNodes.length; j++) {
                         let dist = Math.hypot(catNodes[j].x - catNodes[i].x, catNodes[j].y - catNodes[i].y);
-                        if (dist < 165) { 
+                        // Open spacing thresholds allow clean cross-network structural mapping lines
+                        if (dist < 210) { 
                             ctx.moveTo(catNodes[i].x, catNodes[i].y);
                             ctx.lineTo(catNodes[j].x, catNodes[j].y);
                         }
@@ -518,7 +495,6 @@
         window.addEventListener('resize', () => {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            nodes = [];
             generateData();
         });
 
