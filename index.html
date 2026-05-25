@@ -270,6 +270,34 @@
             "Work-Integrated Learning Mentors": { color: 0x9d4edd, hexStr: "#9d4edd", bg: "rgba(157,78,221,0.08)" }
         };
 
+        // FIXED: Creates an immediate local fallback face texture to guarantee nodes aren't hollow if external links get blocked
+        function createFallbackFaceTexture(colorHex) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+
+            // Soft premium background fill
+            ctx.fillStyle = '#111622';
+            ctx.fillRect(0, 0, 128, 128);
+
+            // Draw a minimalist user face/bust icon inside the node right away
+            ctx.fillStyle = colorHex;
+            
+            // Head
+            ctx.beginPath();
+            ctx.arc(64, 48, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Shoulders/Bust
+            ctx.beginPath();
+            ctx.arc(64, 115, 40, Math.PI, 0);
+            ctx.fill();
+
+            const texture = new THREE.CanvasTexture(canvas);
+            return texture;
+        }
+
         function init3D() {
             scene = new THREE.Scene();
             
@@ -281,10 +309,10 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
             scene.add(ambientLight);
             
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.3);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
             dirLight.position.set(5, 5, 5);
             scene.add(dirLight);
 
@@ -300,8 +328,6 @@
             const totalPeople = 45;
             const radius = 5.5; 
             const textureLoader = new THREE.TextureLoader();
-
-            // Set cross-origin rules globally so textures load properly without browser security roadblocks
             textureLoader.setCrossOrigin('anonymous');
 
             for (let i = 0; i < totalPeople; i++) {
@@ -326,21 +352,29 @@
                 const ringMat = new THREE.MeshBasicMaterial({ color: meta.color, side: THREE.DoubleSide });
                 const ringMesh = new THREE.Mesh(ringGeo, ringMat);
 
-                // FIXED: Direct base map initialization utilizing a basic shader material map update loop
+                // FIXED: Give the material the instant local fallback texture *before* downloading external images
                 const material = new THREE.MeshBasicMaterial({
+                    map: createFallbackFaceTexture(meta.hexStr),
                     side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.95
+                    transparent: false
                 });
 
                 const imgUrl = `https://i.pravatar.cc/150?img=${(i % 70) + 1}`;
                 
-                // FIXED: Instant binding assignments map raw textures instantly to face meshes on stream completion
-                textureLoader.load(imgUrl, (texture) => {
-                    texture.minFilter = THREE.LinearFilter; // Ensures rendering is razor-sharp
-                    material.map = texture;
-                    material.needsUpdate = true;
-                });
+                // Load actual employee photos asynchronously
+                textureLoader.load(
+                    imgUrl, 
+                    (texture) => {
+                        // FIXED: Lock-in structural rendering configs and flag updates explicitly
+                        texture.minFilter = THREE.LinearFilter;
+                        material.map = texture;
+                        material.needsUpdate = true;
+                    },
+                    undefined,
+                    (err) => {
+                        console.warn("External texture blocked or failed. Keeping secure fallback face map asset.");
+                    }
+                );
 
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.add(ringMesh); 
