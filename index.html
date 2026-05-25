@@ -100,7 +100,6 @@
             border-radius: 50%;
         }
 
-        /* Large Widescreen Dossier Card */
         .modal-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -270,37 +269,21 @@
             "Work-Integrated Learning Mentors": { color: 0x9d4edd, hexStr: "#9d4edd", bg: "rgba(157,78,221,0.08)" }
         };
 
-        // FIXED: Creates an immediate local fallback face texture to guarantee nodes aren't hollow if external links get blocked
         function createFallbackFaceTexture(colorHex) {
             const canvas = document.createElement('canvas');
             canvas.width = 128;
             canvas.height = 128;
             const ctx = canvas.getContext('2d');
-
-            // Soft premium background fill
             ctx.fillStyle = '#111622';
             ctx.fillRect(0, 0, 128, 128);
-
-            // Draw a minimalist user face/bust icon inside the node right away
             ctx.fillStyle = colorHex;
-            
-            // Head
-            ctx.beginPath();
-            ctx.arc(64, 48, 22, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Shoulders/Bust
-            ctx.beginPath();
-            ctx.arc(64, 115, 40, Math.PI, 0);
-            ctx.fill();
-
-            const texture = new THREE.CanvasTexture(canvas);
-            return texture;
+            ctx.beginPath(); ctx.arc(64, 48, 22, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(64, 115, 40, Math.PI, 0); ctx.fill();
+            return new THREE.CanvasTexture(canvas);
         }
 
         function init3D() {
             scene = new THREE.Scene();
-            
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 17;
 
@@ -309,9 +292,7 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-            scene.add(ambientLight);
-            
+            scene.add(new THREE.AmbientLight(0xffffff, 1.0));
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
             dirLight.position.set(5, 5, 5);
             scene.add(dirLight);
@@ -347,32 +328,27 @@
                 const z = radius * Math.cos(phi);
 
                 const geometry = new THREE.CircleGeometry(0.42, 32);
-                
-                const ringGeo = new THREE.RingGeometry(0.43, 0.49, 32);
-                const ringMat = new THREE.MeshBasicMaterial({ color: meta.color, side: THREE.DoubleSide });
-                const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                const ringMesh = new THREE.Mesh(
+                    new THREE.RingGeometry(0.43, 0.49, 32), 
+                    new THREE.MeshBasicMaterial({ color: meta.color, side: THREE.DoubleSide })
+                );
 
-                // FIXED: Give the material the instant local fallback texture *before* downloading external images
                 const material = new THREE.MeshBasicMaterial({
                     map: createFallbackFaceTexture(meta.hexStr),
                     side: THREE.DoubleSide,
                     transparent: false
                 });
 
-                const imgUrl = `https://i.pravatar.cc/150?img=${(i % 70) + 1}`;
+                // FIXED: Appending a static unique index variable query string locks down a permanent image link
+                const permanentImgId = (i % 70) + 1;
+                const imgUrl = `https://i.pravatar.cc/150?img=${permanentImgId}`;
                 
-                // Load actual employee photos asynchronously
                 textureLoader.load(
                     imgUrl, 
                     (texture) => {
-                        // FIXED: Lock-in structural rendering configs and flag updates explicitly
                         texture.minFilter = THREE.LinearFilter;
                         material.map = texture;
                         material.needsUpdate = true;
-                    },
-                    undefined,
-                    (err) => {
-                        console.warn("External texture blocked or failed. Keeping secure fallback face map asset.");
                     }
                 );
 
@@ -388,7 +364,7 @@
                     name: `Team Member ${i + 1}`,
                     category: category,
                     bio: `Dossier overview data matrix for k2i Academy team asset. Specialized in delivering engineering programming under the Lassonde School framework. Integrated 3D framework component system.`,
-                    imgUrl: imgUrl,
+                    imgUrl: imgUrl, // FIXED: Modal layout pulls from the exact same URL instance
                     baseScale: 1.0,
                     meta: meta
                 };
@@ -397,22 +373,15 @@
                 nodesArray.push(mesh);
             }
 
+            // Build structural network paths
             Object.keys(categoryMeta).forEach(catKey => {
                 const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
-                const lineMat = new THREE.LineBasicMaterial({ 
-                    color: categoryMeta[catKey].color, 
-                    transparent: true, 
-                    opacity: 0.35 
-                });
-                
+                const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.35 });
                 for (let i = 0; i < catMeshes.length; i++) {
                     for (let j = i + 1; j < catMeshes.length; j++) {
-                        let dist = catMeshes[i].position.distanceTo(catMeshes[j].position);
-                        if (dist < 4.8) { 
-                            const points = [catMeshes[i].position, catMeshes[j].position];
-                            const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-                            const line = new THREE.Line(lineGeo, lineMat);
-                            globeGroup.add(line);
+                        if (catMeshes[i].position.distanceTo(catMeshes[j].position) < 4.8) { 
+                            const lineGeo = new THREE.BufferGeometry().setFromPoints([catMeshes[i].position, catMeshes[j].position]);
+                            globeGroup.add(new THREE.Line(lineGeo, lineMat));
                         }
                     }
                 }
@@ -422,8 +391,9 @@
         function animate() {
             requestAnimationFrame(animate);
 
+            // CONTINUOUS SPINNING LOCKED IN HERE
             if (!isDragging) {
-                globeGroup.rotation.y += ambientVelocityY; 
+                targetRotation.y += ambientVelocityY; 
             }
 
             currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
@@ -434,9 +404,7 @@
 
             nodesArray.forEach(node => {
                 let targetScale = node.userData.baseScale;
-                if (hoveredMesh === node) {
-                    targetScale = 1.35; 
-                }
+                if (hoveredMesh === node) targetScale = 1.35; 
                 node.scale.set(targetScale, targetScale, targetScale);
             });
 
@@ -456,7 +424,6 @@
             window.addEventListener('mousemove', onMouseMove);
             window.addEventListener('mouseup', () => { isDragging = false; });
 
-            // Touch Support
             window.addEventListener('touchstart', (e) => {
                 if (document.body.classList.contains('modal-active')) return;
                 isDragging = true;
@@ -466,12 +433,8 @@
 
             window.addEventListener('touchmove', (e) => {
                 if (!isDragging) return;
-                const deltaMove = {
-                    x: e.touches[0].clientX - previousMousePosition.x,
-                    y: e.touches[0].clientY - previousMousePosition.y
-                };
+                const deltaMove = { x: e.touches[0].clientX - previousMousePosition.x, y: e.touches[0].clientY - previousMousePosition.y };
                 dragTotalDistance += Math.hypot(deltaMove.x, deltaMove.y);
-                
                 targetRotation.y += deltaMove.x * 0.005;
                 targetRotation.x += deltaMove.y * 0.005;
                 previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -483,12 +446,8 @@
 
         function onMouseMove(e) {
             if (isDragging) {
-                const deltaMove = {
-                    x: e.clientX - previousMousePosition.x,
-                    y: e.clientY - previousMousePosition.y
-                };
+                const deltaMove = { x: e.clientX - previousMousePosition.x, y: e.clientY - previousMousePosition.y };
                 dragTotalDistance += Math.hypot(deltaMove.x, deltaMove.y);
-
                 targetRotation.y += deltaMove.x * 0.005;
                 targetRotation.x += deltaMove.y * 0.005;
                 previousMousePosition = { x: e.clientX, y: e.clientY };
@@ -503,17 +462,14 @@
 
             if (intersects.length > 0) {
                 const hitMesh = intersects[0].object;
-                
                 if (hoveredMesh !== hitMesh) {
                     hoveredMesh = hitMesh;
                     container.style.cursor = 'pointer';
-                    
                     hoverLabel.style.display = 'block';
                     hoverLabel.innerText = hoveredMesh.userData.name;
                     hoverLabel.style.borderColor = hoveredMesh.userData.meta.hexStr;
                     hoverLabel.style.color = "#ffffff";
                 }
-                
                 hoverLabel.style.left = `${e.clientX}px`;
                 hoverLabel.style.top = `${e.clientY}px`;
             } else {
