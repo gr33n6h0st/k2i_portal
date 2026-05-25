@@ -34,7 +34,6 @@
             user-select: none;
         }
 
-        /* Three.js Container */
         #canvas-container {
             position: absolute;
             top: 0;
@@ -76,7 +75,6 @@
             margin-top: 5px;
         }
 
-        /* Pure CSS HUD Labels over the 3D Engine */
         .hud-legend {
             position: absolute;
             bottom: 40px;
@@ -102,7 +100,7 @@
             border-radius: 50%;
         }
 
-        /* Premium Widescreen Dossier Card */
+        /* Large Widescreen Dossier Card */
         .modal-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -196,12 +194,11 @@
             width: 100%;
         }
 
-        /* Clean Name Overlay when Hovering 3D Objects */
         #hover-label {
             position: absolute;
             z-index: 20;
             pointer-events: none;
-            background: rgba(6, 8, 12, 0.9);
+            background: rgba(6, 8, 12, 0.95);
             border: 1px solid var(--border-color);
             padding: 6px 14px;
             border-radius: 4px;
@@ -257,7 +254,6 @@
         let raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
         
-        // Interaction Tracking Variables
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
         let targetRotation = { x: 0, y: 0 };
@@ -272,28 +268,23 @@
         };
 
         function init3D() {
-            // 1. Scene setup
             scene = new THREE.Scene();
             
-            // 2. Camera setup
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 18;
+            camera.position.z = 17;
 
-            // 3. Renderer setup
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // 4. Lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
             scene.add(ambientLight);
             
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.3);
             dirLight.position.set(5, 5, 5);
             scene.add(dirLight);
 
-            // Group to contain everything inside the globe
             globeGroup = new THREE.Group();
             scene.add(globeGroup);
 
@@ -304,10 +295,9 @@
 
         function buildTeamSphere() {
             const totalPeople = 45;
-            const radius = 5.5; // Radius of the 3D globe structure
+            const radius = 5.5; 
             const textureLoader = new THREE.TextureLoader();
 
-            // Distribute all 45 nodes perfectly across 3D spherical coordinates using Fibonacci Sphere algorithm
             for (let i = 0; i < totalPeople; i++) {
                 let category;
                 if (i < 5) category = "Community Camp Leads";
@@ -317,7 +307,6 @@
 
                 const meta = categoryMeta[category];
 
-                // Golden ratio spacing distribution (Math ensures zero structural stacking)
                 const phi = Math.acos(1 - 2 * (i + 0.5) / totalPeople);
                 const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
 
@@ -325,39 +314,37 @@
                 const y = radius * Math.sin(phi) * Math.sin(theta);
                 const z = radius * Math.cos(phi);
 
-                // Create Profile Node Geometry (Circular Disc Plane facing outwards)
                 const geometry = new THREE.CircleGeometry(0.42, 32);
                 
-                // Outer tech ring boundary outline mesh
-                const ringGeo = new THREE.RingGeometry(0.44, 0.46, 32);
+                // FIXED: Thicker, bold color outer rings for definitive team grouping visual distinction
+                const ringGeo = new THREE.RingGeometry(0.43, 0.49, 32);
                 const ringMat = new THREE.MeshBasicMaterial({ color: meta.color, side: THREE.DoubleSide });
                 const ringMesh = new THREE.Mesh(ringGeo, ringMat);
 
-                // Profile Image placeholder texturing mapped to mesh faces
-                const imgUrl = `https://i.pravatar.cc/150?img=${(i % 70) + 1}`;
+                // FIXED: Direct dark background rendering to prevent temporary white visual blocks while async loading images
                 const material = new THREE.MeshBasicMaterial({
+                    color: 0x0c1017,
                     side: THREE.DoubleSide,
                     transparent: true,
-                    opacity: 0.9
+                    opacity: 0.95
                 });
 
-                // Async image load processing
+                const imgUrl = `https://i.pravatar.cc/150?img=${(i % 70) + 1}`;
+                
+                // Clean image retrieval stream handling
                 textureLoader.load(imgUrl, (texture) => {
+                    material.color.setHex(0xffffff); // Reset overlay hue mask upon texture completion
                     material.map = texture;
                     material.needsUpdate = true;
                 });
 
                 const mesh = new THREE.Mesh(geometry, material);
-                mesh.add(ringMesh); // Nest outlining ring directly into the center node transform hierarchy
+                mesh.add(ringMesh); 
 
-                // Position node elements on the 3D grid layout coordinates
                 mesh.position.set(x, y, z);
-                
-                // Point meshes perfectly outward from center origin point to look like a clean grid panel globe
                 mesh.lookAt(0, 0, 0);
-                mesh.rotateY(Math.PI); // Invert face mapping so it looks directly at camera correctly
+                mesh.rotateY(Math.PI); 
 
-                // Store critical personnel dataset directly inside the mesh variables container object
                 mesh.userData = {
                     id: i,
                     name: `Team Member ${i + 1}`,
@@ -372,15 +359,19 @@
                 nodesArray.push(mesh);
             }
 
-            // Draw structural constellations connecting lines between nodes inside categories
+            // FIXED: High-intensity, explicitly color-coded connection lines matching team hex definitions
             Object.keys(categoryMeta).forEach(catKey => {
                 const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
-                const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.15 });
+                const lineMat = new THREE.LineBasicMaterial({ 
+                    color: categoryMeta[catKey].color, 
+                    transparent: true, 
+                    opacity: 0.35 // Higher visibility tracking line metrics
+                });
                 
                 for (let i = 0; i < catMeshes.length; i++) {
                     for (let j = i + 1; j < catMeshes.length; j++) {
                         let dist = catMeshes[i].position.distanceTo(catMeshes[j].position);
-                        if (dist < 4.5) { // Connection threshold limit
+                        if (dist < 4.8) { 
                             const points = [catMeshes[i].position, catMeshes[j].position];
                             const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
                             const line = new THREE.Line(lineGeo, lineMat);
@@ -394,9 +385,8 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // Liquid rotation handling with automatic damping decay factor physics
             if (!isDragging) {
-                targetRotation.y += 0.0015; // Slow ambient spin tracking rotation when idle
+                globeGroup.rotation.y += 0.0012; 
             }
 
             currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
@@ -405,11 +395,10 @@
             globeGroup.rotation.x = currentRotation.x;
             globeGroup.rotation.y = currentRotation.y;
 
-            // Force profile ring elements to dynamically face perspective tracking camera coordinates
             nodesArray.forEach(node => {
                 let targetScale = node.userData.baseScale;
                 if (hoveredMesh === node) {
-                    targetScale = 1.35; // Expand node size uniformly up on hover focus transitions
+                    targetScale = 1.35; 
                 }
                 node.scale.set(targetScale, targetScale, targetScale);
             });
@@ -420,7 +409,6 @@
         function addEventListeners() {
             window.addEventListener('resize', onWindowResize);
             
-            // Interaction Event Maps
             window.addEventListener('mousedown', (e) => {
                 if (document.body.classList.contains('modal-active')) return;
                 isDragging = true;
@@ -428,10 +416,9 @@
             });
 
             window.addEventListener('mousemove', onMouseMove);
-            
             window.addEventListener('mouseup', () => { isDragging = false; });
 
-            // Touch support
+            // Mobile/Touch Support
             window.addEventListener('touchstart', (e) => {
                 if (document.body.classList.contains('modal-active')) return;
                 isDragging = true;
@@ -450,12 +437,10 @@
             });
 
             window.addEventListener('touchend', () => { isDragging = false; });
-
             window.addEventListener('click', onCanvasClick);
         }
 
         function onMouseMove(e) {
-            // Drag navigation logic
             if (isDragging) {
                 const deltaMove = {
                     x: e.clientX - previousMousePosition.x,
@@ -467,7 +452,6 @@
                 return;
             }
 
-            // Raycasting cursor detection loop
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
@@ -475,21 +459,18 @@
             const intersects = raycaster.intersectObjects(nodesArray);
 
             if (intersects.length > 0) {
-                // Find nearest mesh object intercepting path vectors
                 const hitMesh = intersects[0].object;
                 
                 if (hoveredMesh !== hitMesh) {
                     hoveredMesh = hitMesh;
                     container.style.cursor = 'pointer';
                     
-                    // Show custom HUD text label tracking
                     hoverLabel.style.display = 'block';
                     hoverLabel.innerText = hoveredMesh.userData.name;
                     hoverLabel.style.borderColor = hoveredMesh.userData.meta.hexStr;
                     hoverLabel.style.color = "#ffffff";
                 }
                 
-                // Track mouse coordinates dynamically for CSS tag positions
                 hoverLabel.style.left = `${e.clientX}px`;
                 hoverLabel.style.top = `${e.clientY}px`;
             } else {
@@ -541,7 +522,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // Run framework execution stack components
         init3D();
     </script>
 </body>
