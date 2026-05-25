@@ -269,19 +269,6 @@
             "Work-Integrated Learning Mentors": { color: 0x9d4edd, hexStr: "#9d4edd", bg: "rgba(157,78,221,0.08)" }
         };
 
-        function createFallbackFaceTexture(colorHex) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 128;
-            canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#111622';
-            ctx.fillRect(0, 0, 128, 128);
-            ctx.fillStyle = colorHex;
-            ctx.beginPath(); ctx.arc(64, 48, 22, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.arc(64, 115, 40, Math.PI, 0); ctx.fill();
-            return new THREE.CanvasTexture(canvas);
-        }
-
         function init3D() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -292,8 +279,8 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            scene.add(new THREE.AmbientLight(0xffffff, 1.0));
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
+            scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
             dirLight.position.set(5, 5, 5);
             scene.add(dirLight);
 
@@ -309,6 +296,8 @@
             const totalPeople = 45;
             const radius = 5.5; 
             const textureLoader = new THREE.TextureLoader();
+            
+            // Explicitly force CORS management for local file executions
             textureLoader.setCrossOrigin('anonymous');
 
             for (let i = 0; i < totalPeople; i++) {
@@ -334,15 +323,18 @@
                 );
 
                 const material = new THREE.MeshBasicMaterial({
-                    map: createFallbackFaceTexture(meta.hexStr),
                     side: THREE.DoubleSide,
                     transparent: false
                 });
 
-                // FIXED: Appending a static unique index variable query string locks down a permanent image link
-                const permanentImgId = (i % 70) + 1;
-                const imgUrl = `https://i.pravatar.cc/150?img=${permanentImgId}`;
-                
+                // FIXED: Pull directly from an open-source, CDN-hosted vector avatar array that completely bypasses local execution blocks
+                const avatarIndex = (i % 16) + 1;
+                const imgUrl = `https://raw.githubusercontent.com/Ashwinvalento/cartoon-avatar/master/lib/images/female/${avatarIndex}.png`;
+                if (i % 2 === 0) {
+                    const maleIndex = (i % 16) + 1;
+                    imgUrl = `https://raw.githubusercontent.com/Ashwinvalento/cartoon-avatar/master/lib/images/male/${maleIndex}.png`;
+                }
+
                 textureLoader.load(
                     imgUrl, 
                     (texture) => {
@@ -364,7 +356,7 @@
                     name: `Team Member ${i + 1}`,
                     category: category,
                     bio: `Dossier overview data matrix for k2i Academy team asset. Specialized in delivering engineering programming under the Lassonde School framework. Integrated 3D framework component system.`,
-                    imgUrl: imgUrl, // FIXED: Modal layout pulls from the exact same URL instance
+                    imgUrl: imgUrl, // Synchronized perfectly with pop-up markup
                     baseScale: 1.0,
                     meta: meta
                 };
@@ -373,7 +365,6 @@
                 nodesArray.push(mesh);
             }
 
-            // Build structural network paths
             Object.keys(categoryMeta).forEach(catKey => {
                 const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
                 const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.35 });
@@ -391,7 +382,7 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // CONTINUOUS SPINNING LOCKED IN HERE
+            // AMBIENT GLOBE ROTATION CONTINUOUS LOOP
             if (!isDragging) {
                 targetRotation.y += ambientVelocityY; 
             }
