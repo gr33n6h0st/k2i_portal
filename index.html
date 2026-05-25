@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personnel Network Interface</title>
+    <title>The k2i Academy Team - Lassonde School of Engineering</title>
     <style>
         :root {
             --bg-color: #06080c;
-            --panel-bg: rgba(10, 14, 22, 0.95);
+            --modal-bg: rgba(10, 14, 22, 0.95);
             --border-color: rgba(45, 54, 69, 0.4);
             --text-main: #f0f3f6;
             --text-muted: #6e7681;
             
-            /* Clean Sci-Fi Category Accent Palette */
+            /* High-Tech Category Color Coding */
             --color-camp-lead: #00bcff;
             --color-camp: #00ffd2;
             --color-wil-lead: #ff007f;
@@ -41,20 +41,30 @@
             width: 100%;
             height: 100%;
             z-index: 1;
+            cursor: pointer;
+            transition: filter 0.4s ease;
         }
 
-        /* HUD Header */
+        /* Background Dimming when Modal is Active */
+        body.modal-active #network-canvas {
+            filter: blur(8px) brightness(0.3);
+        }
+
+        /* HUD Main Header */
         header {
             position: absolute;
-            top: 25px;
+            top: 30px;
             left: 30px;
             z-index: 10;
             pointer-events: none;
+            transition: opacity 0.4s;
         }
+        body.modal-active header { opacity: 0.2; }
+        
         header h1 {
             font-size: 1.1rem;
             text-transform: uppercase;
-            letter-spacing: 4px;
+            letter-spacing: 3px;
             font-weight: 500;
         }
         header p {
@@ -64,17 +74,18 @@
             margin-top: 4px;
         }
 
-        /* HTML Sector Headers for Clear Categorization */
+        /* Fixed Section Layout Labels */
         .sector-header {
             position: absolute;
             z-index: 10;
             pointer-events: none;
             text-transform: uppercase;
             letter-spacing: 2px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             padding-bottom: 6px;
-            width: 40%;
+            width: 38%;
+            transition: opacity 0.4s;
         }
         .sector-header::after {
             content: '';
@@ -83,78 +94,93 @@
             height: 1px;
             background: linear-gradient(90deg, currentColor, transparent);
             margin-top: 6px;
-            opacity: 0.4;
+            opacity: 0.3;
         }
+        body.modal-active .sector-header { opacity: 0.1; }
 
-        /* Position headers explicitly over the 4 quadrants */
         #header-camp-leads { top: 12%; left: 6%; color: var(--color-camp-lead); }
         #header-camp { top: 54%; left: 6%; color: var(--color-camp); }
         #header-wil-leads { top: 12%; left: 54%; color: var(--color-wil-lead); }
         #header-wil { top: 54%; left: 54%; color: var(--color-wil); }
 
-        /* Smooth Slide-out Profile Panel */
-        .drawer {
+        /* Centralized Clean Popup Modal */
+        .modal-overlay {
             position: absolute;
-            top: 0;
-            right: -400px;
-            width: 380px;
-            height: 100%;
-            background: var(--panel-bg);
-            border-left: 1px solid var(--border-color);
-            z-index: 20;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            padding: 50px 35px;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 30;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-card {
+            background: var(--modal-bg);
+            border: 1px solid var(--border-color);
+            width: 440px;
+            padding: 40px;
+            border-radius: 6px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             display: flex;
             flex-direction: column;
             align-items: center;
-            backdrop-filter: blur(16px);
+            transform: scale(0.92);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
         }
-        .drawer.open {
-            transform: translateX(-400px);
+        .modal-overlay.open .modal-card {
+            transform: scale(1);
         }
         .close-btn {
             position: absolute;
-            top: 25px;
-            right: 25px;
+            top: 20px;
+            right: 20px;
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             cursor: pointer;
+            transition: color 0.2s;
         }
         .close-btn:hover { color: var(--text-main); }
-        
-        .drawer-avatar {
-            width: 110px;
-            height: 110px;
+
+        .modal-avatar {
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
-            border: 1px solid var(--border-color);
-            padding: 5px;
-            margin-bottom: 25px;
+            padding: 4px;
+            border: 1px solid transparent;
+            margin-bottom: 20px;
+            object-fit: cover;
         }
-        .drawer-name {
-            font-size: 1.3rem;
+        .modal-name {
+            font-size: 1.4rem;
             font-weight: 400;
-            letter-spacing: 0.5px;
             margin-bottom: 6px;
+            letter-spacing: 0.5px;
         }
-        .drawer-tag {
+        .modal-tag {
             font-size: 0.65rem;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            padding: 4px 12px;
+            letter-spacing: 2px;
+            padding: 4px 14px;
             border-radius: 2px;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             font-weight: 600;
-            background: rgba(255,255,255,0.05);
         }
-        .drawer-bio {
+        .modal-bio {
             font-size: 0.85rem;
             line-height: 1.6;
             color: #afb8c1;
             text-align: center;
             border-top: 1px solid var(--border-color);
-            padding-top: 25px;
+            padding-top: 20px;
             width: 100%;
         }
 
@@ -163,7 +189,7 @@
             top: 0; left: 0; width: 100%; height: 100%;
             background-image: linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
                               linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-size: 50px 50px;
             pointer-events: none;
             z-index: 0;
         }
@@ -175,8 +201,8 @@
     <canvas id="network-canvas"></canvas>
 
     <header>
-        <h1>CORE_PERSONNEL_MATRIX</h1>
-        <p>SECURE INTERFACE // STABLE NETWORK GRID</p>
+        <h1>The k2i Academy Team</h1>
+        <p>Lassonde School of Engineering // INFRASTRUCTURE GRID</p>
     </header>
 
     <div id="header-camp-leads" class="sector-header">Community Leads</div>
@@ -184,46 +210,42 @@
     <div id="header-wil-leads" class="sector-header">Work-Integrated Learning Leads</div>
     <div id="header-wil" class="sector-header">Work-Integrated Learning</div>
 
-    <div id="drawer" class="drawer">
-        <button class="close-btn" onclick="closeDrawer()">×</button>
-        <img id="drawer-img" class="drawer-avatar" src="" alt="">
-        <h2 id="drawer-name" class="drawer-name"></h2>
-        <span id="drawer-tag" class="drawer-tag"></span>
-        <p id="drawer-bio" class="drawer-bio"></p>
+    <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-card">
+            <button class="close-btn" onclick="forceCloseModal()">×</button>
+            <img id="modal-img" class="modal-avatar" src="" alt="">
+            <h2 id="modal-name" class="modal-name"></h2>
+            <span id="modal-tag" class="modal-tag"></span>
+            <p id="modal-bio" class="modal-bio"></p>
+        </div>
     </div>
 
     <script>
         const canvas = document.getElementById('network-canvas');
         const ctx = canvas.getContext('2d');
-        const drawer = document.getElementById('drawer');
+        const modal = document.getElementById('modal-overlay');
 
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
 
         const categories = {
-            "Community Leads": { color: "#00bcff", bounds: { minX: 0.05, maxX: 0.45, minY: 0.15, maxY: 0.45 } },
-            "Community Camp": { color: "#00ffd2", bounds: { minX: 0.05, maxX: 0.45, minY: 0.58, maxY: 0.90 } },
-            "Work-Integrated Learning Leads": { color: "#ff007f", bounds: { minX: 0.52, maxX: 0.92, minY: 0.15, maxY: 0.45 } },
-            "Work-Integrated Learning": { color: "#9d4edd", bounds: { minX: 0.52, maxX: 0.92, minY: 0.58, maxY: 0.90 } }
+            "Community Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.08)", targetX: 0.25, targetY: 0.32 },
+            "Community Camp": { color: "#00ffd2", bg: "rgba(0,255,210,0.08)", targetX: 0.25, targetY: 0.72 },
+            "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.08)", targetX: 0.75, targetY: 0.32 },
+            "Work-Integrated Learning": { color: "#9d4edd", bg: "rgba(157,78,221,0.08)", targetX: 0.75, targetY: 0.72 }
         };
 
         let nodes = [];
         let hoveredNode = null;
         let selectedNode = null;
 
+        // Perfect Smooth Flow Dynamics Settings
+        const friction = 0.82;
+        const springStrength = 0.035;
+
         function generateData() {
             const catKeys = Object.keys(categories);
             const totalPeople = 45;
-
-            // Target counts per category to map out cleanly
-            const counts = {
-                "Community Leads": 4,
-                "Community Camp": 16,
-                "Work-Integrated Learning Leads": 4,
-                "Work-Integrated Learning": 21
-            };
-
-            let tracker = { "Community Leads": 0, "Community Camp": 0, "Work-Integrated Learning Leads": 0, "Work-Integrated Learning": 0 };
 
             for (let i = 0; i < totalPeople; i++) {
                 let category;
@@ -232,33 +254,16 @@
                 else if (i < 24) category = catKeys[2];
                 else category = catKeys[3];
 
-                let b = categories[category].bounds;
-                let count = counts[category];
-                let currentIdx = tracker[category]++;
+                // Set ideal anchor home coordinates inside quadrants
+                let homeX = width * categories[category].targetX;
+                let homeY = height * categories[category].targetY;
 
-                // Calculate neat grid coordinate layouts inside each section's boundary walls
-                let cols = Math.ceil(Math.sqrt(count));
-                let row = Math.floor(currentIdx / cols);
-                let col = currentIdx % cols;
-                
-                let totalRows = Math.ceil(count / cols);
+                // Stagger initial base configurations smoothly around home anchors
+                let angle = (i * 0.9) * Math.PI;
+                let radiusOffset = 40 + (i * 4);
 
-                // Math spacing distribution
-                let pctX = cols > 1 ? col / (cols - 1) : 0.5;
-                let pctY = totalRows > 1 ? row / (totalRows - 1) : 0.5;
-
-                // Pad out edges gently so elements don't hug borders
-                let padX = (b.maxX - b.minX) * 0.1;
-                let padY = (b.maxY - b.minY) * 0.1;
-                
-                let x = width * (b.minX + padX + pctX * ((b.maxX - b.minX) - padX * 2));
-                let y = height * (b.minY + padY + pctY * ((b.maxY - b.minY) - padY * 2));
-
-                // Slight offset logic just to break rigid monotony, keeping it look like a high tech map
-                if(count > 4) {
-                    x += (Math.sin(currentIdx) * 15);
-                    y += (Math.cos(currentIdx) * 15);
-                }
+                let initialX = homeX + Math.cos(angle) * radiusOffset;
+                let initialY = homeY + Math.sin(angle) * radiusOffset;
 
                 nodes.push({
                     id: i,
@@ -266,9 +271,14 @@
                     category: category,
                     bio: `Systems operational profile data for specialized asset within the ${category} matrix department grid.`,
                     imgUrl: `https://i.pravatar.cc/150?img=${(i % 70) + 1}`,
-                    x: x,
-                    y: y,
+                    x: initialX,
+                    y: initialY,
+                    homeX: initialX, // Locked anchor point
+                    homeY: initialY,
+                    vx: 0, vy: 0,
+                    baseRadius: 26,
                     radius: 26,
+                    targetRadius: 26,
                     imgObj: null
                 });
             }
@@ -276,26 +286,83 @@
             nodes.forEach(node => {
                 const img = new Image();
                 img.src = node.imgUrl;
-                img.onload = () => { node.imgObj = img; draw(); };
+                img.onload = () => { node.imgObj = img; };
             });
         }
 
+        function updatePhysics() {
+            // Disables background network movement calculations while modal interface is open
+            if (document.body.classList.contains('modal-active')) return;
+
+            for (let i = 0; i < nodes.length; i++) {
+                let n1 = nodes[i];
+
+                // 1. Return-to-Home Spring Anchor Force (Eliminates continuous drifts)
+                let homeDX = n1.homeX - n1.x;
+                let homeDY = n1.homeY - n1.y;
+                n1.vx += homeDX * springStrength;
+                n1.vy += homeDY * springStrength;
+
+                // 2. Active Hover Push Field (Smoothly shoves nearby nodes out of alignment)
+                if (hoveredNode && hoveredNode !== n1) {
+                    let hdx = n1.x - hoveredNode.x;
+                    let hdy = n1.y - hoveredNode.y;
+                    let hdist = Math.hypot(hdx, hdy);
+                    let pushRadius = 130; // Radius of force pushing other faces away
+
+                    if (hdist < pushRadius && hdist > 0) {
+                        let force = (pushRadius - hdist) / pushRadius;
+                        // Exponential curve gives a very clean, deliberate push
+                        let pushForce = force * force * 14; 
+                        n1.vx += (hdx / hdist) * pushForce;
+                        n1.vy += (hdy / hdist) * pushForce;
+                    }
+                }
+
+                // 3. Self Inter-Node Guard Buffers (Prevents base text overlaps)
+                for (let j = i + 1; j < nodes.length; j++) {
+                    let n2 = nodes[j];
+                    let dx = n2.x - n1.x;
+                    let dy = n2.y - n1.y;
+                    let dist = Math.hypot(dx, dy);
+                    let bufferDist = n1.radius + n2.radius + 25;
+
+                    if (dist < bufferDist && dist > 0) {
+                        let overlapForce = (bufferDist - dist) * 0.12;
+                        n1.vx -= (dx / dist) * overlapForce;
+                        n1.vy -= (dy / dist) * overlapForce;
+                        n2.vx += (dx / dist) * overlapForce;
+                        n2.vy += (dy / dist) * overlapForce;
+                    }
+                }
+
+                // Apply velocity calculations with high friction dampening
+                n1.vx *= friction;
+                n1.vy *= friction;
+                n1.x += n1.vx;
+                n1.y += n1.vy;
+
+                // Smoothly scale node radii up or down depending on hover state
+                n1.targetRadius = (hoveredNode === n1) ? 42 : n1.baseRadius;
+                n1.radius += (n1.targetRadius - n1.radius) * 0.2;
+            }
+        }
+
         function draw() {
+            updatePhysics();
             ctx.clearRect(0, 0, width, height);
 
-            // 1. Draw Clean Structural Connected Webbing Lines for each Category
+            // 1. Draw Intracategory Connected Structural Lines
             Object.keys(categories).forEach(catKey => {
                 let catNodes = nodes.filter(n => n.category === catKey);
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = categories[catKey].color + "33"; // Clear, glowing structural lines
+                ctx.strokeStyle = categories[catKey].color + "22"; // 13% subtle path opacity
 
                 ctx.beginPath();
                 for (let i = 0; i < catNodes.length; i++) {
-                    // Connect each node to its nearest neighbors within the category
                     for (let j = i + 1; j < catNodes.length; j++) {
                         let dist = Math.hypot(catNodes[j].x - catNodes[i].x, catNodes[j].y - catNodes[i].y);
-                        // Ensures lines lock them together visually without becoming an over-the-top spiderweb
-                        if (dist < width * 0.18) { 
+                        if (dist < 180) { 
                             ctx.moveTo(catNodes[i].x, catNodes[i].y);
                             ctx.lineTo(catNodes[j].x, catNodes[j].y);
                         }
@@ -304,28 +371,27 @@
                 ctx.stroke();
             });
 
-            // 2. Draw Stable Identity Circles
+            // 2. Draw Nodes
             nodes.forEach(node => {
                 ctx.save();
                 ctx.translate(node.x, node.y);
 
                 const accentColor = categories[node.category].color;
                 const isHovered = (hoveredNode === node);
-                const isSelected = (selectedNode === node);
 
-                // High-tech Accent Rings
+                // Glow ring
                 ctx.beginPath();
                 ctx.arc(0, 0, node.radius + 4, 0, Math.PI * 2);
-                ctx.strokeStyle = (isHovered || isSelected) ? accentColor : "rgba(255, 255, 255, 0.08)";
-                ctx.lineWidth = (isHovered || isSelected) ? 2 : 1;
+                ctx.strokeStyle = isHovered ? accentColor : "rgba(255, 255, 255, 0.08)";
+                ctx.lineWidth = isHovered ? 2 : 1;
                 ctx.stroke();
 
-                if (isHovered || isSelected) {
-                    ctx.shadowBlur = 10;
+                if (isHovered) {
+                    ctx.shadowBlur = 15;
                     ctx.shadowColor = accentColor;
                 }
 
-                // Profile Image Masking Core
+                // Profile clip
                 ctx.beginPath();
                 ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
                 ctx.fillStyle = "#0c1017";
@@ -347,69 +413,71 @@
                 }
                 ctx.restore();
 
-                // Clean text label rendering
+                // Dynamic Name Label Render (Renders clearly since neighbours are pushed away)
                 if (isHovered) {
-                    ctx.font = "10px sans-serif";
+                    ctx.font = "bold 10px sans-serif";
                     ctx.fillStyle = "#ffffff";
                     ctx.textAlign = "center";
                     ctx.letterSpacing = "1px";
                     ctx.fillText(node.name.toUpperCase(), node.x, node.y + node.radius + 18);
                 }
             });
+
+            requestAnimationFrame(draw);
         }
 
-        // Exact Hit Detection (No physics delays)
         function getNodeAtPos(x, y) {
-            return nodes.find(node => Math.hypot(node.x - x, node.y - y) < node.radius + 6);
+            return nodes.find(node => Math.hypot(node.x - x, node.y - y) < node.radius + 4);
         }
 
         canvas.addEventListener('click', (e) => {
             const clicked = getNodeAtPos(e.clientX, e.clientY);
             if (clicked) {
-                selectedNode = clicked;
-                openProfile(clicked);
-                draw();
+                openModal(clicked);
             }
         });
 
         canvas.addEventListener('mousemove', (e) => {
-            const prevHovered = hoveredNode;
             hoveredNode = getNodeAtPos(e.clientX, e.clientY);
-            if (hoveredNode !== prevHovered) {
-                draw();
-            }
         });
 
-        // UI Drawer Actions
-        function openProfile(node) {
-            document.getElementById('drawer-img').src = node.imgUrl;
-            document.getElementById('drawer-name').innerText = node.name;
+        // Modal Presentation Methods
+        function openModal(node) {
+            document.getElementById('modal-img').src = node.imgUrl;
+            document.getElementById('modal-img').style.borderColor = categories[node.category].color;
+            document.getElementById('modal-name').innerText = node.name;
             
-            const tag = document.getElementById('drawer-tag');
+            const tag = document.getElementById('modal-tag');
             tag.innerText = node.category;
             tag.style.color = categories[node.category].color;
-            tag.style.border = `1px solid ${categories[node.category].color}33`;
+            tag.style.background = categories[node.category].bg;
 
-            document.getElementById('drawer-bio').innerText = node.bio;
-            drawer.classList.add('open');
+            document.getElementById('modal-bio').innerText = node.bio;
+            
+            document.body.classList.add('modal-active');
+            modal.classList.add('open');
         }
 
-        function closeDrawer() {
-            drawer.classList.remove('open');
-            selectedNode = null;
-            draw();
+        function forceCloseModal() {
+            modal.classList.remove('open');
+            document.body.classList.remove('modal-active');
+        }
+
+        function closeModal(e) {
+            if (e.target === modal) {
+                forceCloseModal();
+            }
         }
 
         window.addEventListener('resize', () => {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            // Recalculate layout paths cleanly on resize
             nodes = [];
             generateData();
         });
 
-        // Initialization
         generateData();
+        requestAnimationFrame(draw);
     </script>
 </body>
 </html>
