@@ -7,8 +7,8 @@
     <style>
         :root {
             --bg-color: #06080c;
-            --modal-bg: rgba(10, 14, 22, 0.96);
-            --border-color: rgba(45, 54, 69, 0.4);
+            --modal-bg: rgba(10, 14, 22, 0.98);
+            --border-color: rgba(45, 54, 69, 0.5);
             --text-main: #f0f3f6;
             --text-muted: #6e7681;
             
@@ -45,7 +45,7 @@
         }
 
         body.modal-active #network-canvas {
-            filter: blur(10px) brightness(0.25);
+            filter: blur(12px) brightness(0.2);
         }
 
         header {
@@ -56,7 +56,7 @@
             pointer-events: none;
             transition: opacity 0.4s;
         }
-        body.modal-active header { opacity: 0.1; }
+        body.modal-active header { opacity: 0.05; }
         
         header h1 {
             font-size: 1.2rem;
@@ -92,43 +92,46 @@
             margin-top: 6px;
             opacity: 0.25;
         }
-        body.modal-active .sector-header { opacity: 0.05; }
+        body.modal-active .sector-header { opacity: 0.03; }
 
-        /* Perfect screen bounding for headings */
         #header-camp-leads { top: 12%; left: 5%; color: var(--color-camp-lead); }
         #header-camp { top: 52%; left: 5%; color: var(--color-camp); }
         #header-wil-leads { top: 12%; left: 53%; color: var(--color-wil-lead); }
         #header-wil { top: 52%; left: 53%; color: var(--color-wil); }
 
-        /* Centralized Modal Overlay */
+        /* Expanded Premium Central Modal Overlay */
         .modal-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 30;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.6);
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(6px);
         }
         .modal-overlay.open {
             opacity: 1;
             pointer-events: auto;
         }
+        
+        /* Large Widescreen Dossier Card Layout */
         .modal-card {
             background: var(--modal-bg);
             border: 1px solid var(--border-color);
-            width: 440px;
-            padding: 40px;
-            border-radius: 6px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            width: 750px;
+            min-height: 280px;
+            padding: 45px;
+            border-radius: 8px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.85);
             display: flex;
-            flex-direction: column;
+            flex-direction: row; /* Horizontal layout split */
             align-items: center;
-            transform: scale(0.95);
+            gap: 40px;
+            transform: scale(0.94);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
         }
@@ -137,55 +140,68 @@
         }
         .close-btn {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 25px;
+            right: 25px;
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             cursor: pointer;
+            line-height: 1;
         }
         .close-btn:hover { color: var(--text-main); }
 
+        /* Significantly Expanded Image Frame */
+        .modal-left {
+            flex-shrink: 0;
+        }
         .modal-avatar {
-            width: 120px;
-            height: 120px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
-            padding: 4px;
-            border: 1px solid transparent;
-            margin-bottom: 20px;
+            padding: 6px;
+            border: 2px solid transparent;
             object-fit: cover;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        
+        .modal-right {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
         }
         .modal-name {
-            font-size: 1.4rem;
+            font-size: 1.8rem;
             font-weight: 400;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             letter-spacing: 0.5px;
         }
         .modal-tag {
             font-size: 0.65rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            padding: 4px 14px;
-            border-radius: 2px;
-            margin-bottom: 24px;
+            letter-spacing: 2.5px;
+            padding: 5px 16px;
+            border-radius: 3px;
+            margin-bottom: 20px;
             font-weight: 600;
+            display: inline-block;
         }
         .modal-bio {
-            font-size: 0.85rem;
-            line-height: 1.6;
+            font-size: 0.9rem;
+            line-height: 1.7;
             color: #afb8c1;
-            text-align: center;
             border-top: 1px solid var(--border-color);
-            padding-top: 20px;
+            padding-top: 18px;
             width: 100%;
         }
 
         .grid-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.008) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255, 255, 255, 0.008) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(255, 255, 255, 0.006) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.006) 1px, transparent 1px);
             background-size: 50px 50px;
             pointer-events: none;
             z-index: 0;
@@ -210,10 +226,14 @@
     <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-card">
             <button class="close-btn" onclick="forceCloseModal()">×</button>
-            <img id="modal-img" class="modal-avatar" src="" alt="">
-            <h2 id="modal-name" class="modal-name"></h2>
-            <span id="modal-tag" class="modal-tag"></span>
-            <p id="modal-bio" class="modal-bio"></p>
+            <div class="modal-left">
+                <img id="modal-img" class="modal-avatar" src="" alt="">
+            </div>
+            <div class="modal-right">
+                <h2 id="modal-name" class="modal-name"></h2>
+                <span id="modal-tag" class="modal-tag"></span>
+                <p id="modal-bio" class="modal-bio"></p>
+            </div>
         </div>
     </div>
 
@@ -225,32 +245,23 @@
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
 
-        // Strict layout bounding grids to eliminate overlaps entirely
         const categories = {
-            "Community Camp Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.08)", xStart: 0.05, xEnd: 0.45, yStart: 0.18, yEnd: 0.46 },
-            "Community Camp Mentors": { color: "#00ffd2", bg: "rgba(0,255,210,0.08)", xStart: 0.05, xEnd: 0.45, yStart: 0.58, yEnd: 0.92 },
-            "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.08)", xStart: 0.53, xEnd: 0.93, yStart: 0.18, yEnd: 0.46 },
-            "Work-Integrated Learning Mentors": { color: "#9d4edd", bg: "rgba(157,78,221,0.08)", xStart: 0.53, xEnd: 0.93, yStart: 0.58, yEnd: 0.92 }
+            "Community Camp Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.08)", targetX: 0.25, targetY: 0.32 },
+            "Community Camp Mentors": { color: "#00ffd2", bg: "rgba(0,255,210,0.08)", targetX: 0.25, targetY: 0.74 },
+            "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.08)", targetX: 0.75, targetY: 0.32 },
+            "Work-Integrated Learning Mentors": { color: "#9d4edd", bg: "rgba(157,78,221,0.08)", targetX: 0.75, targetY: 0.74 }
         };
 
         let nodes = [];
         let hoveredNode = null;
 
-        // Optimized Physics Parameters for Liquid Motion
-        const friction = 0.78; 
-        const springStrength = 0.025; 
+        // Fluid Eased Physics Configuration Loops
+        const friction = 0.76; 
+        const springStrength = 0.03; 
 
         function generateData() {
             const catKeys = Object.keys(categories);
             const totalPeople = 45;
-
-            // Define exact category groupings
-            const groupCounts = {
-                "Community Camp Leads": 5,
-                "Community Camp Mentors": 17,
-                "Work-Integrated Learning Leads": 5,
-                "Work-Integrated Learning Mentors": 18
-            };
 
             let groupTrackers = { "Community Camp Leads": 0, "Community Camp Mentors": 0, "Work-Integrated Learning Leads": 0, "Work-Integrated Learning Mentors": 0 };
 
@@ -262,42 +273,33 @@
                 else category = catKeys[3];
 
                 let config = categories[category];
-                let indexInGroup = groupTrackers[category]++;
-                let totalInGroup = groupCounts[category];
+                let idx = groupTrackers[category]++;
+                
+                let homeX, homeY;
 
-                // Calculate a beautiful, evenly spaced home-base position for every single node
-                let cols = Math.ceil(Math.sqrt(totalInGroup));
-                if (totalInGroup === 5) cols = 3; // Clean arrangement for the 5 leads rows
-
-                let row = Math.floor(indexInGroup / cols);
-                let col = indexInGroup % cols;
-                let totalRows = Math.ceil(totalInGroup / cols);
-
-                // Grid position percentage mapping
-                let pctX = cols > 1 ? col / (cols - 1) : 0.5;
-                let pctY = totalRows > 1 ? row / (totalRows - 1) : 0.5;
-
-                // Turn percentages into absolute pixel coordinates within section boundaries
-                let sectorW = width * (config.xEnd - config.xStart);
-                let sectorH = height * (config.yEnd - config.yStart);
-
-                // Pad borders slightly so nodes float away from text headers
-                let padX = sectorW * 0.15;
-                let padY = sectorH * 0.15;
-
-                let homeX = (width * config.xStart) + padX + (pctX * (sectorW - padX * 2));
-                let homeY = (height * config.yStart) + padY + (pctY * (sectorH - padY * 2));
-
-                // Organic offset layout to keep things looking like an interconnected web, not a boring spreadsheet
-                let organicSkew = indexInGroup * 2.3;
-                homeX += Math.sin(organicSkew) * 12;
-                homeY += Math.cos(organicSkew) * 12;
+                // 1. STRICT PENTAGON CIRCULAR LAYOUT FOR LEADS (Exactly 5 members)
+                if (category.includes("Leads")) {
+                    let radius = 85; // Tight, clear geometric circular alignment
+                    let angle = (idx / 5) * Math.PI * 2 - Math.PI / 2; // Perfect geometric rotation spacing
+                    homeX = (width * config.targetX) + Math.cos(angle) * radius;
+                    homeY = (height * config.targetY) + Math.sin(angle) * radius;
+                } 
+                // 2. DENSER MULTI-TIER CIRCULAR GEOMETRIC ROSTER FOR MENTORS
+                else {
+                    let ringIndex = idx % 2; // Split into a tiered 2-layer concentric circle layout
+                    let radius = ringIndex === 0 ? 70 : 135; 
+                    let nodesInRing = ringIndex === 0 ? 7 : 11;
+                    
+                    let angle = (idx / nodesInRing) * Math.PI * 2;
+                    homeX = (width * config.targetX) + Math.cos(angle) * radius;
+                    homeY = (height * config.targetY) + Math.sin(angle) * radius;
+                }
 
                 nodes.push({
                     id: i,
-                    name: `Team Member ${i + 1}`,
+                    name: `Staff Member ${i + 1}`,
                     category: category,
-                    bio: `Professional profile matrix data for k2i Academy team asset. Specialized in delivering engineering programming under the Lassonde School framework.`,
+                    bio: `Dossier overview data for k2i Academy team asset. Specialized in delivering engineering programming under the Lassonde School framework. External infrastructure matrix component.`,
                     imgUrl: `https://i.pravatar.cc/150?img=${(i % 70) + 1}`,
                     x: homeX,
                     y: homeY,
@@ -324,42 +326,38 @@
             for (let i = 0; i < nodes.length; i++) {
                 let n1 = nodes[i];
 
-                // 1. Move fluidly toward assigned grid coordinate position
                 let homeDX = n1.homeX - n1.x;
                 let homeDY = n1.homeY - n1.y;
                 n1.vx += homeDX * springStrength;
                 n1.vy += homeDY * springStrength;
 
-                // 2. Liquid Push Field: Waves neighbors outwards dynamically
+                // Eased Push Dispersion Logic (Completely removes jitters)
                 if (hoveredNode) {
                     let hdx = n1.x - hoveredNode.x;
                     let hdy = n1.y - hoveredNode.y;
                     let hdist = Math.hypot(hdx, hdy);
-                    let pushRadius = 140; 
+                    let pushRadius = 150; 
 
                     if (hoveredNode === n1) {
-                        // The active item stays locked perfectly steady on hover for easy clicking
-                        n1.vx = 0;
-                        n1.vy = 0;
+                        n1.vx = 0; n1.vy = 0; // Lock hovered node completely stable
                     } else if (hdist < pushRadius && hdist > 0) {
                         let force = (pushRadius - hdist) / pushRadius;
-                        // Clean easing function to completely strip physics jitters/vibrations
-                        let smoothForce = force * force * force * 10; 
+                        let smoothForce = force * force * force * 11; 
                         n1.vx += (hdx / hdist) * smoothForce;
                         n1.vy += (hdy / hdist) * smoothForce;
                     }
                 }
 
-                // 3. Prevent Overlaps Base Calculations
+                // Smooth Anti-Overlap Buffers
                 for (let j = i + 1; j < nodes.length; j++) {
                     let n2 = nodes[j];
                     let dx = n2.x - n1.x;
                     let dy = n2.y - n1.y;
                     let dist = Math.hypot(dx, dy);
-                    let bufferDist = n1.radius + n2.radius + 24;
+                    let bufferDist = n1.radius + n2.radius + 22;
 
                     if (dist < bufferDist && dist > 0) {
-                        let overlapForce = (bufferDist - dist) * 0.04;
+                        let overlapForce = (bufferDist - dist) * 0.05;
                         n1.vx -= (dx / dist) * overlapForce;
                         n1.vy -= (dy / dist) * overlapForce;
                         n2.vx += (dx / dist) * overlapForce;
@@ -367,12 +365,9 @@
                     }
                 }
 
-                n1.vx *= friction;
-                n1.vy *= friction;
-                n1.x += n1.vx;
-                n1.y += n1.vy;
+                n1.vx *= friction; n1.vy *= friction;
+                n1.x += n1.vx; n1.y += n1.vy;
 
-                // Smoothly scale item sizing upward on hover targeting
                 n1.targetRadius = (hoveredNode === n1) ? 44 : n1.baseRadius;
                 n1.radius += (n1.targetRadius - n1.radius) * 0.16;
             }
@@ -382,18 +377,31 @@
             updatePhysics();
             ctx.clearRect(0, 0, width, height);
 
-            // 1. Draw Linked Network Lines
+            // 1. Draw Geometric Background Structural Ring Guides for Leads
+            Object.keys(categories).forEach(catKey => {
+                let config = categories[catKey];
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = config.color + "12"; // 7% faint tech layout aesthetic ring
+                
+                if (catKey.includes("Leads")) {
+                    ctx.beginPath();
+                    ctx.arc(width * config.targetX, height * config.targetY, 85, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            });
+
+            // 2. Draw Connected Network Line Mesh Structures
             Object.keys(categories).forEach(catKey => {
                 let catNodes = nodes.filter(n => n.category === catKey);
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = categories[catKey].color + "24"; 
+                ctx.strokeStyle = categories[catKey].color + "22"; 
 
                 ctx.beginPath();
                 for (let i = 0; i < catNodes.length; i++) {
                     for (let j = i + 1; j < catNodes.length; j++) {
                         let dist = Math.hypot(catNodes[j].x - catNodes[i].x, catNodes[j].y - catNodes[i].y);
-                        // Network lines adjust automatically depending on current window size
-                        if (dist < width * 0.15) { 
+                        // Tight structural check limits messy line sprawl
+                        if (dist < 170) { 
                             ctx.moveTo(catNodes[i].x, catNodes[i].y);
                             ctx.lineTo(catNodes[j].x, catNodes[j].y);
                         }
@@ -402,7 +410,7 @@
                 ctx.stroke();
             });
 
-            // 2. Draw Personnel Nodes
+            // 3. Draw Personnel Nodes
             nodes.forEach(node => {
                 ctx.save();
                 ctx.translate(node.x, node.y);
@@ -447,8 +455,6 @@
                     ctx.fillStyle = "#ffffff";
                     ctx.textAlign = "center";
                     ctx.letterSpacing = "1px";
-                    
-                    // Render name badge layout safely
                     ctx.shadowBlur = 4;
                     ctx.shadowColor = "#000000";
                     ctx.fillText(node.name.toUpperCase(), node.x, node.y + node.radius + 18);
@@ -472,6 +478,7 @@
             canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
         });
 
+        // Presentation Window Component Configuration Methods
         function openModal(node) {
             document.getElementById('modal-img').src = node.imgUrl;
             document.getElementById('modal-img').style.borderColor = categories[node.category].color;
