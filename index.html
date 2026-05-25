@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Org Network</title>
+    <style>
+        :root {
+            --bg-color: #0a0c10;
+            --panel-bg: rgba(16, 20, 28, 0.95);
+            --border-color: #1f242c;
+            --text-main: #f0f3f6;
+            --text-muted: #8b949e;
+            
+            /* Category Accent Colors - Sleek Sci-Fi Palettes */
+            --color-camp: #00ffd2;
+            --color-camp-lead: #00bcff;
+            --color-wil: #9d4edd;
+            --color-wil-lead: #ff007f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Network Canvas */
+        #network-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            cursor: grab;
+        }
+        #network-canvas:active {
+            cursor: grabbing;
+        }
+
+        /* HUD Header */
+        header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        header h1 {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 400;
+            color: var(--text-main);
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+        header p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* Legend/Filters */
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 10;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            backdrop-filter: blur(8px);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* Profile Detail Drawer */
+        .drawer {
+            position: absolute;
+            top: 0;
+            right: -380px;
+            width: 350px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--border-color);
+            z-index: 20;
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(12px);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+        .drawer.open {
+            right: 0;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-btn:hover {
+            color: var(--text-main);
+        }
+        .drawer-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            padding: 4px;
+            margin-bottom: 20px;
+            object-fit: cover;
+        }
+        .drawer-name {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        .drawer-tag {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+        .drawer-bio {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            width: 100%;
+        }
+
+        /* Subtle grid overlay for tech look */
+        .grid-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(31, 36, 44, 0.1) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(31, 36, 44, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-overlay"></div>
+    <canvas id="network-canvas"></canvas>
+
+    <header>
+        <h1>CORE_NETWORK</h1>
+        <p>PERSONNEL INTERFACE // INTERACTIVE NODE MAP</p>
+    </header>
+
+    <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background: var(--color-camp-lead);"></span> Community Leads</div>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--color-camp);"></span> Community Camp</div>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--color-wil-lead);"></span> Work-Integrated Learning Leads</div>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--color-wil);"></span> Work-Integrated Learning</div>
+    </div>
+
+    <div id="drawer" class="drawer">
+        <button class="close-btn" onclick="closeDrawer()">×</button>
+        <img id="drawer-img" class="drawer-avatar" src="" alt="">
+        <h2 id="drawer-name" class="drawer-name"></h2>
+        <span id="drawer-tag" class="drawer-tag"></span>
+        <p id="drawer-bio" class="drawer-bio"></p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+        const drawer = document.getElementById('drawer');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const categories = {
+            "Community Leads": { color: "#00bcff", bg: "rgba(0,188,255,0.1)" },
+            "Community Camp": { color: "#00ffd2", bg: "rgba(0,255,210,0.1)" },
+            "Work-Integrated Learning Leads": { color: "#ff007f", bg: "rgba(255,0,127,0.1)" },
+            "Work-Integrated Learning": { color: "#9d4edd", bg: "rgba(157,78,221,0.1)" }
+        };
+
+        let nodes = [];
+        let selectedNode = null;
+        
+        // Pan & Zoom state
+        let transform = { x: 0, y: 0, scale: 0.9 };
+        let isDragging = false;
+        let startPan = { x: 0, y: 0 };
+
+        // Generate 45 placeholder employees 
+        function generateData() {
+            const catKeys = Object.keys(categories);
+            const totalPeople = 45;
+
+            for (let i = 0; i < totalPeople; i++) {
+                // Distribute roles across categories
+                let category;
+                if (i < 4) category = catKeys[0]; // 4 Leads
+                else if (i < 20) category = catKeys[1]; // 16 Camp members
+                else if (i < 24) category = catKeys[2]; // 4 WIL Leads
+                else category = catKeys[3]; // 21 WIL members
+
+                // Place nodes loosely in an orbital structure from center
+                const angle = (i / totalPeople) * Math.PI * 4 + (Math.random() * 0.5);
+                const radius = 150 + (i * 12) + (Math.random() * 40);
+                
+                nodes.push({
+                    id: i,
+                    name: `Employee ${i + 1}`,
+                    category: category,
+                    bio: `This is a high-tech placeholder profile bio for Employee ${i + 1}. Serving natively within the ${category} matrix sector. Specialized in systems execution and project workflow scaling.`,
+                    // Using standard open-source square UI avatars
+                    imgUrl: `https://i.pravatar.cc/150?img=${(i % 70) + 1}`, 
+                    x: width / 2 + Math.cos(angle) * radius,
+                    y: height / 2 + Math.sin(angle) * radius,
+                    radius: 26, // Node click size
+                    imgObj: null
+                });
+            }
+            
+            // Preload images safely onto canvas
+            nodes.forEach(node => {
+                const img = new Image();
+                img.src = node.imgUrl;
+                img.onload = () => { node.imgObj = img; draw(); };
+            });
+        }
+
+        // Render functions
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.save();
+            
+            // Apply Camera movements (Pan & Zoom)
+            ctx.translate(transform.x, transform.y);
+            ctx.scale(transform.scale, transform.scale);
+
+            // 1. Draw Network Connections (Lines)
+            ctx.lineWidth = 0.6;
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+                    // Connect close nodes or same-category items
+                    if (dist < 180 || (nodes[i].category === nodes[j].category && dist < 260)) {
+                        ctx.beginPath();
+                        ctx.moveTo(nodes[i].x, nodes[j].x);
+                        ctx.lineTo(nodes[j].x, nodes[j].y);
+                        
+                        // Create gradient connection or default dim line
+                        ctx.strokeStyle = nodes[i].category === nodes[j].category 
+                            ? categories[nodes[i].category].color + "1a" 
+                            : "rgba(45, 54, 69, 0.2)";
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // 2. Draw Interactive Nodes
+            nodes.forEach(node => {
+                ctx.save();
+                ctx.translate(node.x, node.y);
+
+                const color = categories[node.category].color;
+                const isHovered = selectedNode === node;
+
+                // Outer Sci-Fi Ring
+                ctx.beginPath();
+                ctx.arc(0, 0, node.radius + 5, 0, Math.PI * 2);
+                ctx.strokeStyle = isHovered ? color : "rgba(31, 36, 44, 0.6)";
+                ctx.lineWidth = isHovered ? 2 : 1;
+                ctx.stroke();
+                
+                if (isHovered) {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = color;
+                }
+
+                // Node Base Core Circle
+                ctx.beginPath();
+                ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                ctx.fillStyle = "#0d1117";
+                ctx.fill();
+
+                // Profile Image Clip masking
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(0, 0, node.radius - 2, 0, Math.PI * 2);
+                ctx.clip();
+                if (node.imgObj) {
+                    ctx.drawImage(node.imgObj, -node.radius, -node.radius, node.radius * 2, node.radius * 2);
+                } else {
+                    ctx.fillStyle = "#21262d";
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                // Mini Category tag badge underneath node if hovered
+                if (isHovered) {
+                    ctx.font = "bold 9px sans-serif";
+                    ctx.fillStyle = color;
+                    ctx.textAlign = "center";
+                    ctx.fillText(node.name.toUpperCase(), 0, node.radius + 20);
+                }
+
+                ctx.restore();
+            });
+
+            ctx.restore();
+        }
+
+        // Coordinate helper translation
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            // Map raw screenspace coordinates to scaled/panned canvas context matrix
+            return {
+                x: (clientX - rect.left - transform.x) / transform.scale,
+                y: (clientY - rect.top - transform.y) / transform.scale
+            };
+        }
+
+        // Click / Touch interaction parsing
+        function getNodeAtPos(pos) {
+            return nodes.find(node => Math.hypot(node.x - pos.x, node.y - pos.y) < node.radius + 5);
+        }
+
+        // Interactivity Event Handlers
+        canvas.addEventListener('mousedown', (e) => {
+            const mousePos = getMousePos(e);
+            const clickedNode = getNodeAtPos(mousePos);
+
+            if (clickedNode) {
+                openProfile(clickedNode);
+                selectedNode = clickedNode;
+                draw();
+            } else {
+                isDragging = true;
+                startPan = { x: e.clientX - transform.x, y: e.clientY - transform.y };
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const mousePos = getMousePos(e);
+            
+            if (isDragging) {
+                transform.x = e.clientX - startPan.x;
+                transform.y = e.clientY - startPan.y;
+                draw();
+            } else {
+                // Dynamic Hover Highlights
+                const prevSelected = selectedNode;
+                selectedNode = getNodeAtPos(mousePos);
+                if (selectedNode !== prevSelected) draw();
+            }
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        // Wheel Zoom Controls
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomFactor = 1.05;
+            if (e.deltaY < 0 && transform.scale < 2) transform.scale *= zoomFactor;
+            if (e.deltaY > 0 && transform.scale > 0.4) transform.scale /= zoomFactor;
+            draw();
+        }, { passive: false });
+
+        // UI Drawer Actions
+        function openProfile(node) {
+            document.getElementById('drawer-img').src = node.imgUrl;
+            document.getElementById('drawer-img').style.borderColor = categories[node.category].color;
+            document.getElementById('drawer-name').innerText = node.name;
+            
+            const tag = document.getElementById('drawer-tag');
+            tag.innerText = node.category;
+            tag.style.color = categories[node.category].color;
+            tag.style.background = categories[node.category].bg;
+
+            document.getElementById('drawer-bio').innerText = node.bio;
+            drawer.classList.add('open');
+        }
+
+        function closeDrawer() {
+            drawer.classList.remove('open');
+            selectedNode = null;
+            draw();
+        }
+
+        // Window resizing correction
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            draw();
+        });
+
+        // Initialize mapping
+        generateData();
+        // Shift global startup coordinates slightly left to center nicely with open sidebar layout
+        transform.x = window.innerWidth * 0.05; 
+        draw();
+    </script>
+</body>
+</html>
