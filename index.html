@@ -118,7 +118,6 @@
             pointer-events: auto;
         }
         
-        /* Large Widescreen Dossier Card Layout */
         .modal-card {
             background: var(--modal-bg);
             border: 1px solid var(--border-color);
@@ -128,7 +127,7 @@
             border-radius: 8px;
             box-shadow: 0 40px 80px rgba(0,0,0,0.85);
             display: flex;
-            flex-direction: row; /* Horizontal layout split */
+            flex-direction: row;
             align-items: center;
             gap: 40px;
             transform: scale(0.94);
@@ -151,7 +150,6 @@
         }
         .close-btn:hover { color: var(--text-main); }
 
-        /* Significantly Expanded Image Frame */
         .modal-left {
             flex-shrink: 0;
         }
@@ -255,9 +253,9 @@
         let nodes = [];
         let hoveredNode = null;
 
-        // Fluid Eased Physics Configuration Loops
-        const friction = 0.76; 
-        const springStrength = 0.03; 
+        // Perfectly tuned dampening variables for butter-smooth velocity transitions
+        const friction = 0.82; 
+        const springStrength = 0.02; 
 
         function generateData() {
             const catKeys = Object.keys(categories);
@@ -277,17 +275,17 @@
                 
                 let homeX, homeY;
 
-                // 1. STRICT PENTAGON CIRCULAR LAYOUT FOR LEADS (Exactly 5 members)
+                // 1. Pentagon circle placement for leads
                 if (category.includes("Leads")) {
-                    let radius = 85; // Tight, clear geometric circular alignment
-                    let angle = (idx / 5) * Math.PI * 2 - Math.PI / 2; // Perfect geometric rotation spacing
+                    let radius = 80; 
+                    let angle = (idx / 5) * Math.PI * 2 - Math.PI / 2; 
                     homeX = (width * config.targetX) + Math.cos(angle) * radius;
                     homeY = (height * config.targetY) + Math.sin(angle) * radius;
                 } 
-                // 2. DENSER MULTI-TIER CIRCULAR GEOMETRIC ROSTER FOR MENTORS
+                // 2. Dual-ring concentric concentric layouts for mentors
                 else {
-                    let ringIndex = idx % 2; // Split into a tiered 2-layer concentric circle layout
-                    let radius = ringIndex === 0 ? 70 : 135; 
+                    let ringIndex = idx % 2; 
+                    let radius = ringIndex === 0 ? 65 : 130; 
                     let nodesInRing = ringIndex === 0 ? 7 : 11;
                     
                     let angle = (idx / nodesInRing) * Math.PI * 2;
@@ -326,49 +324,64 @@
             for (let i = 0; i < nodes.length; i++) {
                 let n1 = nodes[i];
 
+                // Completely steady state lock if item is being actively hovered
+                if (hoveredNode === n1) {
+                    n1.vx = 0;
+                    n1.vy = 0;
+                    n1.x += (n1.homeX - n1.x) * 0.1;
+                    n1.y += (n1.homeY - n1.y) * 0.1;
+                    
+                    n1.targetRadius = 44;
+                    n1.radius += (n1.targetRadius - n1.radius) * 0.16;
+                    continue;
+                }
+
+                // Return to base anchoring force setup
                 let homeDX = n1.homeX - n1.x;
                 let homeDY = n1.homeY - n1.y;
                 n1.vx += homeDX * springStrength;
                 n1.vy += homeDY * springStrength;
 
-                // Eased Push Dispersion Logic (Completely removes jitters)
+                // Eased Push dispersion physics loop
                 if (hoveredNode) {
                     let hdx = n1.x - hoveredNode.x;
                     let hdy = n1.y - hoveredNode.y;
                     let hdist = Math.hypot(hdx, hdy);
-                    let pushRadius = 150; 
+                    let pushRadius = 145; 
 
-                    if (hoveredNode === n1) {
-                        n1.vx = 0; n1.vy = 0; // Lock hovered node completely stable
-                    } else if (hdist < pushRadius && hdist > 0) {
+                    if (hdist < pushRadius && hdist > 0) {
                         let force = (pushRadius - hdist) / pushRadius;
-                        let smoothForce = force * force * force * 11; 
+                        // Cubic force profile smooths out tracking jitter entirely
+                        let smoothForce = force * force * force * 9.5; 
                         n1.vx += (hdx / hdist) * smoothForce;
                         n1.vy += (hdy / hdist) * smoothForce;
                     }
                 }
 
-                // Smooth Anti-Overlap Buffers
+                // Smooth Inter-node proximity buffer
                 for (let j = i + 1; j < nodes.length; j++) {
                     let n2 = nodes[j];
+                    if (n2 === hoveredNode) continue; // Let the wave move out of the way seamlessly
+                    
                     let dx = n2.x - n1.x;
                     let dy = n2.y - n1.y;
                     let dist = Math.hypot(dx, dy);
-                    let bufferDist = n1.radius + n2.radius + 22;
+                    let bufferDist = n1.radius + n2.radius + 24;
 
                     if (dist < bufferDist && dist > 0) {
-                        let overlapForce = (bufferDist - dist) * 0.05;
+                        let overlapForce = (bufferDist - dist) * 0.04;
                         n1.vx -= (dx / dist) * overlapForce;
                         n1.vy -= (dy / dist) * overlapForce;
-                        n2.vx += (dx / dist) * overlapForce;
-                        n2.vy += (dy / dist) * overlapForce;
                     }
                 }
 
-                n1.vx *= friction; n1.vy *= friction;
-                n1.x += n1.vx; n1.y += n1.vy;
+                // Apply velocity calculations with modern high friction dampening variables
+                n1.vx *= friction;
+                n1.vy *= friction;
+                n1.x += n1.vx;
+                n1.y += n1.vy;
 
-                n1.targetRadius = (hoveredNode === n1) ? 44 : n1.baseRadius;
+                n1.targetRadius = n1.baseRadius;
                 n1.radius += (n1.targetRadius - n1.radius) * 0.16;
             }
         }
@@ -377,31 +390,30 @@
             updatePhysics();
             ctx.clearRect(0, 0, width, height);
 
-            // 1. Draw Geometric Background Structural Ring Guides for Leads
+            // 1. Draw Geometric Background Structural Layout Guide Rings
             Object.keys(categories).forEach(catKey => {
                 let config = categories[catKey];
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = config.color + "12"; // 7% faint tech layout aesthetic ring
+                ctx.strokeStyle = config.color + "12"; 
                 
                 if (catKey.includes("Leads")) {
                     ctx.beginPath();
-                    ctx.arc(width * config.targetX, height * config.targetY, 85, 0, Math.PI * 2);
+                    ctx.arc(width * config.targetX, height * config.targetY, 80, 0, Math.PI * 2);
                     ctx.stroke();
                 }
             });
 
-            // 2. Draw Connected Network Line Mesh Structures
+            // 2. Draw Network Line Connections
             Object.keys(categories).forEach(catKey => {
                 let catNodes = nodes.filter(n => n.category === catKey);
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = categories[catKey].color + "22"; 
+                ctx.strokeStyle = categories[catKey].color + "1c"; // Clean, non-distracting 11% line alpha
 
                 ctx.beginPath();
                 for (let i = 0; i < catNodes.length; i++) {
                     for (let j = i + 1; j < catNodes.length; j++) {
                         let dist = Math.hypot(catNodes[j].x - catNodes[i].x, catNodes[j].y - catNodes[i].y);
-                        // Tight structural check limits messy line sprawl
-                        if (dist < 170) { 
+                        if (dist < 165) { 
                             ctx.moveTo(catNodes[i].x, catNodes[i].y);
                             ctx.lineTo(catNodes[j].x, catNodes[j].y);
                         }
@@ -410,7 +422,7 @@
                 ctx.stroke();
             });
 
-            // 3. Draw Personnel Nodes
+            // 3. Render Avatars
             nodes.forEach(node => {
                 ctx.save();
                 ctx.translate(node.x, node.y);
@@ -478,7 +490,6 @@
             canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
         });
 
-        // Presentation Window Component Configuration Methods
         function openModal(node) {
             document.getElementById('modal-img').src = node.imgUrl;
             document.getElementById('modal-img').style.borderColor = categories[node.category].color;
