@@ -297,7 +297,7 @@
             const radius = 5.5; 
             const textureLoader = new THREE.TextureLoader();
             
-            // Explicitly force CORS management for local file executions
+            // Forces proper cross-origin permissions
             textureLoader.setCrossOrigin('anonymous');
 
             for (let i = 0; i < totalPeople; i++) {
@@ -327,13 +327,9 @@
                     transparent: false
                 });
 
-                // FIXED: Pull directly from an open-source, CDN-hosted vector avatar array that completely bypasses local execution blocks
-                const avatarIndex = (i % 16) + 1;
-                const imgUrl = `https://raw.githubusercontent.com/Ashwinvalento/cartoon-avatar/master/lib/images/female/${avatarIndex}.png`;
-                if (i % 2 === 0) {
-                    const maleIndex = (i % 16) + 1;
-                    imgUrl = `https://raw.githubusercontent.com/Ashwinvalento/cartoon-avatar/master/lib/images/male/${maleIndex}.png`;
-                }
+                // FIXED: Use a highly reliable developer image CDN that supports safe local CORS texturing out of the box
+                const imageSeed = 100 + i;
+                const imgUrl = `https://picsum.photos/id/${imageSeed}/150/150`;
 
                 textureLoader.load(
                     imgUrl, 
@@ -356,7 +352,7 @@
                     name: `Team Member ${i + 1}`,
                     category: category,
                     bio: `Dossier overview data matrix for k2i Academy team asset. Specialized in delivering engineering programming under the Lassonde School framework. Integrated 3D framework component system.`,
-                    imgUrl: imgUrl, // Synchronized perfectly with pop-up markup
+                    imgUrl: imgUrl, // Fully synchronized to match the exact same node texture link
                     baseScale: 1.0,
                     meta: meta
                 };
@@ -382,7 +378,7 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // AMBIENT GLOBE ROTATION CONTINUOUS LOOP
+            // CONTINUOUS GLOBE SPINNING LOOP
             if (!isDragging) {
                 targetRotation.y += ambientVelocityY; 
             }
