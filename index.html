@@ -361,9 +361,13 @@
             Object.keys(categoryMeta).forEach(catKey => {
                 const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
                 const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.35 });
+                
+                // FIXED: Isolated standard threshold (4.8) vs the specific wide-interval group (6.5)
+                const maxDistance = (catKey === "Work-Integrated Learning Leads") ? 6.5 : 4.8;
+
                 for (let i = 0; i < catMeshes.length; i++) {
                     for (let j = i + 1; j < catMeshes.length; j++) {
-                        if (catMeshes[i].position.distanceTo(catMeshes[j].position) < 6.5) { 
+                        if (catMeshes[i].position.distanceTo(catMeshes[j].position) < maxDistance) { 
                             const lineGeo = new THREE.BufferGeometry().setFromPoints([catMeshes[i].position, catMeshes[j].position]);
                             globeGroup.add(new THREE.Line(lineGeo, lineMat));
                         }
