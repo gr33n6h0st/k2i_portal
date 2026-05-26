@@ -28,7 +28,6 @@
             user-select: none; 
         }
 
-        /* Clean black background - stars are now handled by 3D engine for depth */
         #stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background: #000; }
 
         #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; cursor: grab; }
@@ -87,7 +86,7 @@
     </div>
 
     <div id="list-overlay" class="modal-overlay" onclick="closeListOverlay(event)">
-        <div class="modal-card">
+        <div class="modal-card" onclick="event.stopPropagation()">
             <button class="close-btn" onclick="forceCloseList()">×</button>
             <h2 id="list-title" class="modal-name" style="margin-bottom:0;"></h2>
             <div id="list-items" class="list-items"></div>
@@ -95,7 +94,7 @@
     </div>
 
     <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-card">
+        <div class="modal-card" onclick="event.stopPropagation()">
             <button class="close-btn" onclick="forceCloseModal()">×</button>
             <div class="modal-left"><img id="modal-img" class="modal-avatar" src="" alt=""></div>
             <div class="modal-right">
@@ -158,7 +157,15 @@
             { name: "Westley Wong", bio: "Computer Science For Software Development", cat: "Work-Integrated Learning Mentors", img: "assets/46.jpg" }
         ];
 
-        // --- NEW CATEGORY LIST LOGIC ---
+        // --- CATEGORY META ---
+        const categoryMeta = {
+            "Community Camp Leads": { color: 0x00bcff, hexStr: "#00bcff", bg: "rgba(0,188,255,0.08)" },
+            "Community Camp Mentors": { color: 0x00ffd2, hexStr: "#00ffd2", bg: "rgba(0,255,210,0.08)" },
+            "Work-Integrated Learning Leads": { color: 0xff007f, hexStr: "#ff007f", bg: "rgba(255,0,127,0.08)" },
+            "Work-Integrated Learning Mentors": { color: 0x9d4edd, hexStr: "#9d4edd", bg: "rgba(157,78,221,0.08)" }
+        };
+
+        // --- LIST LOGIC ---
         function openCategoryList(catName) {
             const listItems = document.getElementById('list-items');
             listItems.innerHTML = '';
@@ -167,7 +174,12 @@
                 const div = document.createElement('div');
                 div.className = 'list-row';
                 div.innerText = p.name;
-                div.onclick = () => { forceCloseList(); openModal(p); };
+                div.onclick = (e) => { 
+                    e.stopPropagation(); 
+                    forceCloseList(); 
+                    // Create a data object that includes the required meta information
+                    openModal({ ...p, meta: categoryMeta[p.cat] }); 
+                };
                 listItems.appendChild(div);
             });
             document.body.classList.add('modal-active');
@@ -193,13 +205,6 @@
         let dragTotalDistance = 0;
         const ambientVelocityY = 0.0012;
 
-        const categoryMeta = {
-            "Community Camp Leads": { color: 0x00bcff, hexStr: "#00bcff", bg: "rgba(0,188,255,0.08)" },
-            "Community Camp Mentors": { color: 0x00ffd2, hexStr: "#00ffd2", bg: "rgba(0,255,210,0.08)" },
-            "Work-Integrated Learning Leads": { color: 0xff007f, hexStr: "#ff007f", bg: "rgba(255,0,127,0.08)" },
-            "Work-Integrated Learning Mentors": { color: 0x9d4edd, hexStr: "#9d4edd", bg: "rgba(157,78,221,0.08)" }
-        };
-
         function init3D() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -210,7 +215,6 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // Add background starfield
             createStarfield();
 
             scene.add(new THREE.AmbientLight(0xffffff, 1.2));
@@ -274,7 +278,6 @@
                 nodesArray.push(mesh);
             });
 
-            // Connectors
             Object.keys(categoryMeta).forEach(catKey => {
                 const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
                 const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.35 });
@@ -305,7 +308,6 @@
             renderer.render(scene, camera);
         }
 
-        // --- EVENTS ---
         function addEventListeners() {
             window.addEventListener('resize', onWindowResize);
             window.addEventListener('mousedown', (e) => { if (document.body.classList.contains('modal-active')) return; isDragging = true; dragTotalDistance = 0; previousMousePosition = { x: e.clientX, y: e.clientY }; });
