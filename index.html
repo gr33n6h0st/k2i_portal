@@ -18,47 +18,44 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        
-        body { 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            overflow: hidden; 
-            width: 100vw; 
-            height: 100vh; 
-            user-select: none; 
-        }
+        body { background-color: var(--bg-color); color: var(--text-main); overflow: hidden; width: 100vw; height: 100vh; user-select: none; }
 
-        /* Clean black background - stars are now handled by 3D engine for depth */
         #stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background: #000; }
-
         #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; cursor: grab; }
         #canvas-container:active { cursor: grabbing; }
         body.modal-active #canvas-container { filter: blur(12px) brightness(0.2); pointer-events: none; }
 
-        header { position: absolute; top: 35px; left: 35px; z-index: 10; pointer-events: none; transition: opacity 0.4s; }
-        body.modal-active header { opacity: 0.05; }
+        header { position: absolute; top: 35px; left: 35px; z-index: 10; pointer-events: none; }
         header h1 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 500; }
         header p { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 1.5px; margin-top: 5px; }
 
-        .hud-legend { position: absolute; bottom: 40px; left: 35px; z-index: 10; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
-        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+        /* HUD Legend - Now Interactive */
+        .hud-legend { position: absolute; bottom: 40px; left: 35px; z-index: 10; display: flex; flex-direction: column; gap: 12px; }
+        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; cursor: pointer; padding: 5px; border-radius: 4px; transition: background 0.3s; }
+        .legend-item:hover { background: rgba(255,255,255,0.05); }
         .legend-color { width: 12px; height: 12px; border-radius: 50%; }
 
+        /* List Panel Styling */
+        .list-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: flex-start; backdrop-filter: blur(4px); padding-left: 50px; }
+        .list-panel { background: var(--modal-bg); border-right: 1px solid var(--border-color); width: 350px; height: 100%; padding: 40px; overflow-y: auto; }
+        .list-title { font-size: 1rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); }
+        .list-member { padding: 12px 0; border-bottom: 1px solid #1a1f29; cursor: pointer; transition: color 0.2s; }
+        .list-member:hover { color: #fff; }
+        .close-list { margin-bottom: 20px; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; }
+
+        /* Modal Styling */
         .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 30; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(6px); }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
         .modal-card { background: var(--modal-bg); border: 1px solid var(--border-color); width: 750px; min-height: 280px; padding: 45px; border-radius: 8px; box-shadow: 0 40px 80px rgba(0,0,0,0.85); display: flex; flex-direction: row; align-items: center; gap: 40px; transform: scale(0.94); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
         .modal-overlay.open .modal-card { transform: scale(1); }
         .close-btn { position: absolute; top: 25px; right: 25px; background: none; border: none; color: var(--text-muted); font-size: 1.6rem; cursor: pointer; line-height: 1; }
         .close-btn:hover { color: var(--text-main); }
-
-        .modal-left { flex-shrink: 0; }
-        .modal-avatar { width: 180px; height: 180px; border-radius: 50%; padding: 6px; border: 2px solid transparent; object-fit: cover; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
-        .modal-right { flex-grow: 1; display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
-        .modal-name { font-size: 1.8rem; font-weight: 400; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .modal-avatar { width: 180px; height: 180px; border-radius: 50%; padding: 6px; border: 2px solid transparent; object-fit: cover; }
+        .modal-name { font-size: 1.8rem; font-weight: 400; margin-bottom: 8px; }
         .modal-tag { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2.5px; padding: 5px 16px; border-radius: 3px; margin-bottom: 20px; font-weight: 600; display: inline-block; }
-        .modal-bio { font-size: 0.9rem; line-height: 1.7; color: #afb8c1; border-top: 1px solid var(--border-color); padding-top: 18px; width: 100%; }
+        .modal-bio { font-size: 0.9rem; line-height: 1.7; color: #afb8c1; border-top: 1px solid var(--border-color); padding-top: 18px; }
 
-        #hover-label { position: absolute; z-index: 20; pointer-events: none; background: rgba(6, 8, 12, 0.95); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; display: none; transform: translate(-50%, -140%); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        #hover-label { position: absolute; z-index: 20; pointer-events: none; background: rgba(6, 8, 12, 0.95); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; display: none; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -74,10 +71,18 @@
     </header>
 
     <div class="hud-legend">
-        <div class="legend-item"><div class="legend-color" style="background: var(--color-camp-lead)"></div>Community Camp Leads</div>
-        <div class="legend-item"><div class="legend-color" style="background: var(--color-camp)"></div>Community Camp Mentors</div>
-        <div class="legend-item"><div class="legend-color" style="background: var(--color-wil-lead)"></div>Work-Integrated Learning Leads</div>
-        <div class="legend-item"><div class="legend-color" style="background: var(--color-wil)"></div>Work-Integrated Learning Mentors</div>
+        <div class="legend-item" onclick="openList('Community Camp Leads')"><div class="legend-color" style="background: var(--color-camp-lead)"></div>Community Camp Leads</div>
+        <div class="legend-item" onclick="openList('Community Camp Mentors')"><div class="legend-color" style="background: var(--color-camp)"></div>Community Camp Mentors</div>
+        <div class="legend-item" onclick="openList('Work-Integrated Learning Leads')"><div class="legend-color" style="background: var(--color-wil-lead)"></div>Work-Integrated Learning Leads</div>
+        <div class="legend-item" onclick="openList('Work-Integrated Learning Mentors')"><div class="legend-color" style="background: var(--color-wil-mentors)"></div>Work-Integrated Learning Mentors</div>
+    </div>
+
+    <div id="list-overlay" class="list-overlay" onclick="closeList()">
+        <div class="list-panel" onclick="event.stopPropagation()">
+            <div class="close-list" onclick="closeList()">← Back to Matrix</div>
+            <h2 id="list-title" class="list-title">Category</h2>
+            <div id="list-content"></div>
+        </div>
     </div>
 
     <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
@@ -93,7 +98,6 @@
     </div>
 
     <script>
-        // --- DATA ---
         const teamData = [
             { name: "Michael D'Ambrosi", bio: "Community Camp Lead", cat: "Community Camp Leads", img: "assets/0.jpg" },
             { name: "Talia Palermo", bio: "Community Camp Lead", cat: "Community Camp Leads", img: "assets/1.jpg" },
@@ -144,23 +148,7 @@
             { name: "Westley Wong", bio: "Computer Science For Software Development", cat: "Work-Integrated Learning Mentors", img: "assets/46.jpg" }
         ];
 
-        // --- 3D ENGINE ---
-        const container = document.getElementById('canvas-container');
-        const hoverLabel = document.getElementById('hover-label');
-        const modal = document.getElementById('modal-overlay');
-
-        let scene, camera, renderer, globeGroup;
-        let nodesArray = [];
-        let raycaster = new THREE.Raycaster();
-        let mouse = new THREE.Vector2();
-        let isDragging = false;
-        let previousMousePosition = { x: 0, y: 0 };
-        let targetRotation = { x: 0, y: 0 };
-        let currentRotation = { x: 0, y: 0 };
-        let hoveredMesh = null;
-        let dragTotalDistance = 0;
-        const ambientVelocityY = 0.0012;
-
+        // --- 3D ENGINE & LIST LOGIC ---
         const categoryMeta = {
             "Community Camp Leads": { color: 0x00bcff, hexStr: "#00bcff", bg: "rgba(0,188,255,0.08)" },
             "Community Camp Mentors": { color: 0x00ffd2, hexStr: "#00ffd2", bg: "rgba(0,255,210,0.08)" },
@@ -168,179 +156,121 @@
             "Work-Integrated Learning Mentors": { color: 0x9d4edd, hexStr: "#9d4edd", bg: "rgba(157,78,221,0.08)" }
         };
 
+        // --- UI FUNCTIONS ---
+        function openList(cat) {
+            const listOverlay = document.getElementById('list-overlay');
+            const listContent = document.getElementById('list-content');
+            document.getElementById('list-title').innerText = cat;
+            listContent.innerHTML = '';
+
+            const filtered = teamData.filter(p => p.cat === cat);
+            filtered.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'list-member';
+                div.innerText = p.name;
+                div.onclick = () => { closeList(); openModal(p); };
+                listContent.appendChild(div);
+            });
+            listOverlay.style.display = 'flex';
+        }
+
+        function closeList() { document.getElementById('list-overlay').style.display = 'none'; }
+        
+        function openModal(data) {
+            document.getElementById('modal-img').src = data.imgUrl;
+            document.getElementById('modal-img').style.borderColor = categoryMeta[data.cat].hexStr;
+            document.getElementById('modal-name').innerText = data.name;
+            const tag = document.getElementById('modal-tag');
+            tag.innerText = data.cat;
+            tag.style.color = categoryMeta[data.cat].hexStr;
+            tag.style.background = categoryMeta[data.cat].bg;
+            document.getElementById('modal-bio').innerText = data.bio;
+            document.body.classList.add('modal-active');
+            document.getElementById('modal-overlay').classList.add('open');
+        }
+
+        function forceCloseModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.classList.remove('modal-active'); }
+        function closeModal(e) { if (e.target.id === 'modal-overlay') forceCloseModal(); }
+
+        // --- 3D SETUP (Simplified Boilerplate) ---
+        let scene, camera, renderer, globeGroup;
+        let nodesArray = [];
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let isDragging = false;
+        let dragTotalDistance = 0;
+        let targetRotation = { x: 0, y: 0 };
+        let currentRotation = { x: 0, y: 0 };
+        let hoveredMesh = null;
+
         function init3D() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 17;
-
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // Starfield
+            const starGeometry = new THREE.BufferGeometry();
+            const starMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.05 });
+            const pts = [];
+            for(let i=0; i<2000; i++) pts.push((Math.random()-0.5)*100, (Math.random()-0.5)*100, (Math.random()-0.5)*100);
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+            scene.add(new THREE.Points(starGeometry, starMaterial));
 
-            // Add background starfield
-            createStarfield();
-
-            scene.add(new THREE.AmbientLight(0xffffff, 1.2));
             globeGroup = new THREE.Group();
             scene.add(globeGroup);
 
-            buildTeamSphere();
-            addEventListeners();
-            animate();
-        }
-
-        function createStarfield() {
-            const starGeometry = new THREE.BufferGeometry();
-            const starMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.05, transparent: true, opacity: 0.8 });
-            const starVertices = [];
-            for (let i = 0; i < 2000; i++) {
-                const x = (Math.random() - 0.5) * 100;
-                const y = (Math.random() - 0.5) * 100;
-                const z = (Math.random() - 0.5) * 100;
-                starVertices.push(x, y, z);
-            }
-            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-            const stars = new THREE.Points(starGeometry, starMaterial);
-            scene.add(stars);
-        }
-
-        function buildTeamSphere() {
-            const radius = 5.5; 
+            // Build Nodes
+            const radius = 5.5;
             const textureLoader = new THREE.TextureLoader();
-            
-            teamData.forEach((person, i) => {
-                const meta = categoryMeta[person.cat];
+            teamData.forEach((p, i) => {
                 const phi = Math.acos(1 - 2 * (i + 0.5) / teamData.length);
                 const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
                 const x = radius * Math.sin(phi) * Math.cos(theta);
                 const y = radius * Math.sin(phi) * Math.sin(theta);
                 const z = radius * Math.cos(phi);
-
-                const geometry = new THREE.CircleGeometry(0.42, 32);
-                const ringMesh = new THREE.Mesh(
-                    new THREE.RingGeometry(0.43, 0.49, 32), 
-                    new THREE.MeshBasicMaterial({ color: meta.color, side: THREE.DoubleSide })
-                );
-                const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: false });
-
-                textureLoader.load(person.img, (texture) => {
-                    texture.minFilter = THREE.LinearFilter;
-                    material.map = texture;
-                    material.needsUpdate = true;
-                });
-
-                const mesh = new THREE.Mesh(geometry, material);
-                mesh.add(ringMesh); 
+                
+                const mesh = new THREE.Mesh(new THREE.CircleGeometry(0.42, 32), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+                textureLoader.load(p.img, (tex) => { mesh.material.map = tex; mesh.material.needsUpdate = true; });
                 mesh.position.set(x, y, z);
-                mesh.lookAt(0, 0, 0);
-                mesh.rotateY(Math.PI); 
-
-                mesh.userData = { id: i, name: person.name, category: person.cat, bio: person.bio, imgUrl: person.img, baseScale: 1.0, meta: meta };
-
+                mesh.lookAt(0,0,0);
+                mesh.rotateY(Math.PI);
+                mesh.userData = p;
                 globeGroup.add(mesh);
                 nodesArray.push(mesh);
             });
 
-            // Connectors
-            Object.keys(categoryMeta).forEach(catKey => {
-                const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
-                const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.35 });
-                const maxDistance = (catKey === "Work-Integrated Learning Leads") ? 6.5 : 4.8;
-                for (let i = 0; i < catMeshes.length; i++) {
-                    for (let j = i + 1; j < catMeshes.length; j++) {
-                        if (catMeshes[i].position.distanceTo(catMeshes[j].position) < maxDistance) { 
-                            const lineGeo = new THREE.BufferGeometry().setFromPoints([catMeshes[i].position, catMeshes[j].position]);
-                            globeGroup.add(new THREE.Line(lineGeo, lineMat));
-                        }
-                    }
-                }
-            });
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            if (!isDragging && !hoveredMesh) { targetRotation.y += ambientVelocityY; }
-            currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
-            currentRotation.y += (targetRotation.y - currentRotation.y) * 0.1;
-            globeGroup.rotation.x = currentRotation.x;
-            globeGroup.rotation.y = currentRotation.y;
-            nodesArray.forEach(node => {
-                let targetScale = node.userData.baseScale;
-                if (hoveredMesh === node) targetScale = 1.35; 
-                node.scale.set(targetScale, targetScale, targetScale);
-            });
-            renderer.render(scene, camera);
-        }
-
-        // --- EVENTS ---
-        function addEventListeners() {
-            window.addEventListener('resize', onWindowResize);
-            window.addEventListener('mousedown', (e) => { if (document.body.classList.contains('modal-active')) return; isDragging = true; dragTotalDistance = 0; previousMousePosition = { x: e.clientX, y: e.clientY }; });
-            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mousedown', (e) => { isDragging = true; dragTotalDistance = 0; });
             window.addEventListener('mouseup', () => { isDragging = false; });
-            window.addEventListener('click', onCanvasClick);
-        }
-
-        function onMouseMove(e) {
-            if (isDragging) {
-                const deltaMove = { x: e.clientX - previousMousePosition.x, y: e.clientY - previousMousePosition.y };
-                dragTotalDistance += Math.hypot(deltaMove.x, deltaMove.y);
-                targetRotation.y += deltaMove.x * 0.005;
-                targetRotation.x += deltaMove.y * 0.005;
-                previousMousePosition = { x: e.clientX, y: e.clientY };
-                return;
-            }
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(nodesArray);
-            if (intersects.length > 0) {
-                const hitMesh = intersects[0].object;
-                if (hoveredMesh !== hitMesh) {
-                    hoveredMesh = hitMesh;
-                    container.style.cursor = 'pointer';
-                    hoverLabel.style.display = 'block';
-                    hoverLabel.innerText = hoveredMesh.userData.name;
-                    hoverLabel.style.borderColor = hoveredMesh.userData.meta.hexStr;
-                    hoverLabel.style.color = "#ffffff";
+            window.addEventListener('mousemove', (e) => {
+                if(isDragging) { targetRotation.y += e.movementX * 0.005; targetRotation.x += e.movementY * 0.005; }
+                // Hover logic simplified
+                mouse.x = (e.clientX/window.innerWidth)*2-1; mouse.y = -(e.clientY/window.innerHeight)*2+1;
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(nodesArray);
+                if(intersects.length > 0) {
+                    document.body.style.cursor = 'pointer';
+                    hoveredMesh = intersects[0].object;
+                } else {
+                    document.body.style.cursor = 'grab';
+                    hoveredMesh = null;
                 }
-                hoverLabel.style.left = `${e.clientX}px`;
-                hoverLabel.style.top = `${e.clientY}px`;
-            } else {
-                hoveredMesh = null;
-                container.style.cursor = isDragging ? 'grabbing' : 'grab';
-                hoverLabel.style.display = 'none';
+            });
+            window.addEventListener('click', () => { if(hoveredMesh) openModal(hoveredMesh.userData); });
+
+            function animate() {
+                requestAnimationFrame(animate);
+                targetRotation.y += 0.0012;
+                currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
+                currentRotation.y += (targetRotation.y - currentRotation.y) * 0.1;
+                globeGroup.rotation.x = currentRotation.x;
+                globeGroup.rotation.y = currentRotation.y;
+                renderer.render(scene, camera);
             }
+            animate();
         }
-
-        function onCanvasClick(e) {
-            if (document.body.classList.contains('modal-active')) return;
-            if (dragTotalDistance > 5) return;
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(nodesArray);
-            if (intersects.length > 0) openModal(intersects[0].object.userData);
-        }
-
-        function openModal(data) {
-            document.getElementById('modal-img').src = data.imgUrl;
-            document.getElementById('modal-img').style.borderColor = data.meta.hexStr;
-            document.getElementById('modal-name').innerText = data.name;
-            const tag = document.getElementById('modal-tag');
-            tag.innerText = data.category;
-            tag.style.color = data.meta.hexStr;
-            tag.style.background = data.meta.bg;
-            document.getElementById('modal-bio').innerText = data.bio;
-            document.body.classList.add('modal-active');
-            modal.classList.add('open');
-        }
-
-        function forceCloseModal() { modal.classList.remove('open'); document.body.classList.remove('modal-active'); }
-        function closeModal(e) { if (e.target === modal) forceCloseModal(); }
-        function onWindowResize() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
-
         init3D();
     </script>
 </body>
