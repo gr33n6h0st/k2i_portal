@@ -80,7 +80,6 @@
     </div>
 
     <script>
-        // 1. DATA ARRAY
         const teamData = [
             { name: "Michael D'Ambrosi", bio: "Community Camp Lead", cat: "Community Camp Leads", img: "assets/0.jpg" },
             { name: "Talia Palermo", bio: "Community Camp Lead", cat: "Community Camp Leads", img: "assets/1.jpg" },
@@ -184,7 +183,6 @@
             teamData.forEach((person, i) => {
                 const meta = categoryMeta[person.cat];
 
-                // Fibonacci sphere calculation
                 const phi = Math.acos(1 - 2 * (i + 0.5) / teamData.length);
                 const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
 
@@ -200,7 +198,6 @@
 
                 const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: false });
 
-                // Load your local images
                 textureLoader.load(person.img, (texture) => {
                     texture.minFilter = THREE.LinearFilter;
                     material.map = texture;
@@ -219,7 +216,6 @@
                 nodesArray.push(mesh);
             });
 
-            // Add lines between members
             Object.keys(categoryMeta).forEach(catKey => {
                 const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
                 const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.35 });
@@ -238,11 +234,17 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            if (!isDragging) targetRotation.y += ambientVelocityY;
+            
+            // Only rotate if we are NOT dragging and NOT hovering over a node
+            if (!isDragging && !hoveredMesh) {
+                targetRotation.y += ambientVelocityY;
+            }
+            
             currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
             currentRotation.y += (targetRotation.y - currentRotation.y) * 0.1;
             globeGroup.rotation.x = currentRotation.x;
             globeGroup.rotation.y = currentRotation.y;
+            
             nodesArray.forEach(node => {
                 let targetScale = node.userData.baseScale;
                 if (hoveredMesh === node) targetScale = 1.35; 
