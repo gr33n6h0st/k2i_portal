@@ -3,50 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The k2i Academy Team - 3D Matrix</title>
+    <title>The k2i Academy Team - Lassonde School of Engineering</title>
     <style>
         :root {
-            --bg-color: #050508;
+            --bg-color: #000000;
             --modal-bg: rgba(10, 14, 22, 0.98);
-            --border-color: rgba(60, 70, 90, 0.5);
+            --border-color: rgba(45, 54, 69, 0.5);
             --text-main: #f0f3f6;
-            --text-muted: #8b949e;
+            --text-muted: #6e7681;
+            --color-camp-lead: #00bcff;
+            --color-camp: #00ffd2;
+            --color-wil-lead: #ff007f;
+            --color-wil: #9d4edd;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); overflow: hidden; width: 100vw; height: 100vh; }
+        
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            overflow: hidden; 
+            width: 100vw; 
+            height: 100vh; 
+            user-select: none; 
+        }
 
-        /* The Nebula Background */
+        /* Enhanced Space Background (Nebula/Black Hole effect) */
         #stars {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            /* Layered gradients for a cosmic, swirling effect */
             background: 
-                radial-gradient(circle at 20% 30%, rgba(40, 20, 60, 0.4) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(20, 50, 60, 0.3) 0%, transparent 40%),
-                radial-gradient(circle at 50% 50%, rgba(10, 10, 20, 1) 0%, #050508 100%),
-                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px) 50px 50px / 500px 500px;
+                radial-gradient(circle at 50% 50%, rgba(20, 10, 40, 0.6) 0%, transparent 60%),
+                radial-gradient(circle at 30% 70%, rgba(0, 50, 50, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(50, 0, 50, 0.4) 0%, transparent 50%),
+                #000000;
         }
 
         #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; cursor: grab; }
-        
-        header { position: absolute; top: 40px; left: 40px; z-index: 10; pointer-events: none; }
-        h1 { font-size: 1.4rem; text-transform: uppercase; letter-spacing: 4px; font-weight: 300; }
-        p { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; margin-top: 5px; }
+        #canvas-container:active { cursor: grabbing; }
+        body.modal-active #canvas-container { filter: blur(12px) brightness(0.2); pointer-events: none; }
 
-        .hud-legend { position: absolute; bottom: 40px; left: 40px; z-index: 10; display: flex; flex-direction: column; gap: 12px; }
-        .legend-item { display: flex; align-items: center; gap: 12px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+        header { position: absolute; top: 35px; left: 35px; z-index: 10; pointer-events: none; transition: opacity 0.4s; }
+        body.modal-active header { opacity: 0.05; }
+        header h1 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 500; }
+        header p { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 1.5px; margin-top: 5px; }
+
+        .hud-legend { position: absolute; bottom: 40px; left: 35px; z-index: 10; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
         .legend-color { width: 12px; height: 12px; border-radius: 50%; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-card { background: var(--modal-bg); border: 1px solid var(--border-color); width: 450px; padding: 40px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
-        .modal-name { font-size: 1.6rem; margin-bottom: 5px; }
-        .modal-cat { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
-        .modal-bio { font-size: 0.9rem; line-height: 1.6; border-top: 1px solid #333; padding-top: 20px; color: #ccc; }
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 30; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(6px); }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-card { background: var(--modal-bg); border: 1px solid var(--border-color); width: 750px; min-height: 280px; padding: 45px; border-radius: 8px; box-shadow: 0 40px 80px rgba(0,0,0,0.85); display: flex; flex-direction: row; align-items: center; gap: 40px; transform: scale(0.94); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
+        .modal-overlay.open .modal-card { transform: scale(1); }
+        .close-btn { position: absolute; top: 25px; right: 25px; background: none; border: none; color: var(--text-muted); font-size: 1.6rem; cursor: pointer; line-height: 1; }
+        .close-btn:hover { color: var(--text-main); }
+
+        .modal-left { flex-shrink: 0; }
+        .modal-avatar { width: 180px; height: 180px; border-radius: 50%; padding: 6px; border: 2px solid transparent; object-fit: cover; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        .modal-right { flex-grow: 1; display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+        .modal-name { font-size: 1.8rem; font-weight: 400; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .modal-tag { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2.5px; padding: 5px 16px; border-radius: 3px; margin-bottom: 20px; font-weight: 600; display: inline-block; }
+        .modal-bio { font-size: 0.9rem; line-height: 1.7; color: #afb8c1; border-top: 1px solid var(--border-color); padding-top: 18px; width: 100%; }
+
+        #hover-label { position: absolute; z-index: 20; pointer-events: none; background: rgba(6, 8, 12, 0.95); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; display: none; transform: translate(-50%, -140%); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
     <div id="stars"></div>
     <div id="canvas-container"></div>
+    <div id="hover-label"></div>
 
     <header>
         <h1>The k2i Academy Team</h1>
@@ -54,130 +84,262 @@
     </header>
 
     <div class="hud-legend">
-        <div class="legend-item"><div class="legend-color" style="background: #00bcff"></div>Community Camp Leads</div>
-        <div class="legend-item"><div class="legend-color" style="background: #00ffd2"></div>Community Camp Mentors</div>
-        <div class="legend-item"><div class="legend-color" style="background: #ff007f"></div>Work-Integrated Learning Leads</div>
-        <div class="legend-item"><div class="legend-color" style="background: #9d4edd"></div>Work-Integrated Learning Mentors</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--color-camp-lead)"></div>Community Camp Leads</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--color-camp)"></div>Community Camp Mentors</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--color-wil-lead)"></div>Work-Integrated Learning Leads</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--color-wil)"></div>Work-Integrated Learning Mentors</div>
     </div>
 
-    <div id="modal" class="modal-overlay" onclick="this.style.display='none'">
-        <div class="modal-card" onclick="event.stopPropagation()">
-            <h2 id="m-name" class="modal-name"></h2>
-            <div id="m-cat" class="modal-cat"></div>
-            <p id="m-bio" class="modal-bio"></p>
+    <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-card">
+            <button class="close-btn" onclick="forceCloseModal()">×</button>
+            <div class="modal-left"><img id="modal-img" class="modal-avatar" src="" alt=""></div>
+            <div class="modal-right">
+                <h2 id="modal-name" class="modal-name"></h2>
+                <span id="modal-tag" class="modal-tag"></span>
+                <p id="modal-bio" class="modal-bio"></p>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-
     <script>
         const teamData = [
-            { name: "Michael D'Ambrosi", cat: "Community Camp Leads", bio: "Community Camp Lead" },
-            { name: "Talia Palermo", cat: "Community Camp Leads", bio: "Community Camp Lead" },
-            { name: "Bamdad Ababaei", cat: "Community Camp Mentors", bio: "Engineering" },
-            { name: "Leon Li", cat: "Community Camp Mentors", bio: "Computer Science for Software Development" },
-            { name: "Emeline Williams", cat: "Community Camp Mentors", bio: "Honours Bachelor of Health Sciences" },
-            { name: "Sabriha Amin", cat: "Community Camp Mentors", bio: "Community Camp Mentor" },
-            { name: "Cameron Jackson", cat: "Community Camp Mentors", bio: "Mechatronic Engineering" },
-            { name: "Camille Jurik", cat: "Community Camp Mentors", bio: "Biomedical Science" },
-            { name: "Seila Bak", cat: "Community Camp Mentors", bio: "Digital Media" },
-            { name: "Brandon Smart", cat: "Work-Integrated Learning Leads", bio: "Computer Engineering - Faculty of Education" },
-            { name: "Hanifah Lameed", cat: "Work-Integrated Learning Leads", bio: "Work-Integrated Learning Lead" },
-            { name: "Sidney Liu", cat: "Work-Integrated Learning Leads", bio: "Work-Integrated Learning Lead" },
-            { name: "Elizabeth Ghreir", cat: "Work-Integrated Learning Leads", bio: "Work-Integrated Learning Lead" },
-            { name: "Sofie Khan", cat: "Work-Integrated Learning Leads", bio: "Work-Integrated Learning Lead" },
-            { name: "Bofina Manochehrzadeh", cat: "Work-Integrated Learning Leads", bio: "Work-Integrated Learning Lead" },
-            { name: "Anusha Masroor", cat: "Work-Integrated Learning Leads", bio: "Work-Integrated Learning Lead" },
-            { name: "Conan Lee", cat: "Work-Integrated Learning Leads", bio: "Work-Integrated Learning Lead" },
-            { name: "Shariah Mirza", cat: "Work-Integrated Learning Mentors", bio: "Computer Science" },
-            { name: "Stella Malik", cat: "Work-Integrated Learning Mentors", bio: "Environmental Management" },
-            { name: "Paola Tenaglia", cat: "Work-Integrated Learning Mentors", bio: "Medical Sciences" },
-            { name: "Mithil Kansara", cat: "Work-Integrated Learning Mentors", bio: "Mechanical Engineering" },
-            { name: "Fairuz Jahan", cat: "Work-Integrated Learning Mentors", bio: "Computer Science" },
-            { name: "Sakshi Sharma", cat: "Work-Integrated Learning Mentors", bio: "Computer Engineering" },
-            { name: "Saif Alsafadi", cat: "Work-Integrated Learning Mentors", bio: "Electrical Engineering" },
-            { name: "Rithika Rose Samson", cat: "Work-Integrated Learning Mentors", bio: "Mechatronics Engineering" },
-            { name: "Danya Shafi", cat: "Work-Integrated Learning Mentors", bio: "Psychology & Biology" },
-            { name: "Rithik Kumanan", cat: "Work-Integrated Learning Mentors", bio: "Digital Media Game Development" },
-            { name: "Dan Solomon", cat: "Work-Integrated Learning Mentors", bio: "Statistics" },
-            { name: "Sadia Jahan Shifa", cat: "Work-Integrated Learning Mentors", bio: "Computer Engineering" },
-            { name: "Brian Chen", cat: "Work-Integrated Learning Mentors", bio: "Electrical Engineering" },
-            { name: "Niharika Tripathi", cat: "Work-Integrated Learning Mentors", bio: "Electrical Engineering" },
-            { name: "Aryan Dhanji", cat: "Work-Integrated Learning Mentors", bio: "Computer Engineering" },
-            { name: "Ethan St. Louis", cat: "Work-Integrated Learning Mentors", bio: "Computer Engineering" },
-            { name: "Neha Sharma", cat: "Work-Integrated Learning Mentors", bio: "Software Engineering" },
-            { name: "Katelyn Yip", cat: "Work-Integrated Learning Mentors", bio: "Engineering" },
-            { name: "Sami Ali", cat: "Work-Integrated Learning Mentors", bio: "Computer Science" },
-            { name: "Raley Terro", cat: "Work-Integrated Learning Mentors", bio: "Computing (Honours)" },
-            { name: "Mowmita Zannat", cat: "Work-Integrated Learning Mentors", bio: "Bachelor of Science - Biology" },
-            { name: "Arisa Arzan Pour", cat: "Work-Integrated Learning Mentors", bio: "Computer Science" },
-            { name: "Rafia Oishee", cat: "Work-Integrated Learning Mentors", bio: "Chemical Engineering" },
-            { name: "Mirza Baig", cat: "Work-Integrated Learning Mentors", bio: "Software Engineering" },
-            { name: "AARON XAVIER GONSALVES", cat: "Work-Integrated Learning Mentors", bio: "Electrical Engineering" },
-            { name: "Heetva Gandhi", cat: "Work-Integrated Learning Mentors", bio: "Life Sciences" },
-            { name: "Hanna Cole", cat: "Work-Integrated Learning Mentors", bio: "Earth Science, Geophysics" },
-            { name: "Jethro Wignaraj", cat: "Work-Integrated Learning Mentors", bio: "Mechanical Engineering" },
-            { name: "Anagha Koroth", cat: "Work-Integrated Learning Mentors", bio: "Work-Integrated Learning Mentor" },
-            { name: "Westley Wong", cat: "Work-Integrated Learning Mentors", bio: "Computer Science For Software Development" }
+            { name: "Michael D'Ambrosi", bio: "Community Camp Lead", cat: "Community Camp Leads", img: "assets/0.jpg" },
+            { name: "Talia Palermo", bio: "Community Camp Lead", cat: "Community Camp Leads", img: "assets/1.jpg" },
+            { name: "Bamdad Ababaei", bio: "Engineering", cat: "Community Camp Mentors", img: "assets/2.jpg" },
+            { name: "Leon Li", bio: "Computer Science for Software Development", cat: "Community Camp Mentors", img: "assets/3.jpg" },
+            { name: "Emeline Williams", bio: "Honours Bachelor of Health Sciences", cat: "Community Camp Mentors", img: "assets/4.jpg" },
+            { name: "Sabriha Amin", bio: "Community Camp Mentor", cat: "Community Camp Mentors", img: "assets/5.jpg" },
+            { name: "Cameron Jackson", bio: "Mechatronic Engineering", cat: "Community Camp Mentors", img: "assets/6.jpg" },
+            { name: "Camille Jurik", bio: "Biomedical Science", cat: "Community Camp Mentors", img: "assets/7.jpg" },
+            { name: "Seila Bak", bio: "Digital Media", cat: "Community Camp Mentors", img: "assets/8.jpg" },
+            { name: "Brandon Smart", bio: "Computer Engineering - Faculty of Education", cat: "Work-Integrated Learning Leads", img: "assets/9.jpg" },
+            { name: "Hanifah Lameed", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/10.jpg" },
+            { name: "Sidney Liu", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/11.jpg" },
+            { name: "Elizabeth Ghreir", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/12.jpg" },
+            { name: "Sofie Khan", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/13.jpg" },
+            { name: "Bofina Manochehrzadeh", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/14.jpg" },
+            { name: "Anusha Masroor", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/15.jpg" },
+            { name: "Conan Lee", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/16.jpg" },
+            { name: "Shariah Mirza", bio: "Computer Science", cat: "Work-Integrated Learning Mentors", img: "assets/17.jpg" },
+            { name: "Stella Malik", bio: "Environmental Management", cat: "Work-Integrated Learning Mentors", img: "assets/18.jpg" },
+            { name: "Paola Tenaglia", bio: "Medical Sciences", cat: "Work-Integrated Learning Mentors", img: "assets/19.jpg" },
+            { name: "Mithil Kansara", bio: "Mechanical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/20.jpg" },
+            { name: "Fairuz Jahan", bio: "Computer Science", cat: "Work-Integrated Learning Mentors", img: "assets/21.jpg" },
+            { name: "Sakshi Sharma", bio: "Computer Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/22.jpg" },
+            { name: "Saif Alsafadi", bio: "Electrical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/23.jpg" },
+            { name: "Rithika Rose Samson", bio: "Mechatronics Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/24.jpg" },
+            { name: "Danya Shafi", bio: "Psychology & Biology", cat: "Work-Integrated Learning Mentors", img: "assets/25.jpg" },
+            { name: "Rithik Kumanan", bio: "Digital Media Game Development", cat: "Work-Integrated Learning Mentors", img: "assets/26.jpg" },
+            { name: "Dan Solomon", bio: "Statistics", cat: "Work-Integrated Learning Mentors", img: "assets/27.jpg" },
+            { name: "Sadia Jahan Shifa", bio: "Computer Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/28.jpg" },
+            { name: "Brian Chen", bio: "Electrical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/29.jpg" },
+            { name: "Niharika Tripathi", bio: "Electrical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/30.jpg" },
+            { name: "Aryan Dhanji", bio: "Computer Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/31.jpg" },
+            { name: "Ethan St. Louis", bio: "Computer Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/32.jpg" },
+            { name: "Neha Sharma", bio: "Software Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/33.jpg" },
+            { name: "Katelyn Yip", bio: "Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/34.jpg" },
+            { name: "Sami Ali", bio: "Computer Science", cat: "Work-Integrated Learning Mentors", img: "assets/35.jpg" },
+            { name: "Raley Terro", bio: "Computing (Honours)", cat: "Work-Integrated Learning Mentors", img: "assets/36.jpg" },
+            { name: "Mowmita Zannat", bio: "Bachelor of Science - Biology", cat: "Work-Integrated Learning Mentors", img: "assets/37.jpg" },
+            { name: "Arisa Arzan Pour", bio: "Computer Science", cat: "Work-Integrated Learning Mentors", img: "assets/38.jpg" },
+            { name: "Rafia Oishee", bio: "Chemical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/39.jpg" },
+            { name: "Mirza Baig", bio: "Bachelor of Software Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/40.jpg" },
+            { name: "AARON XAVIER GONSALVES", bio: "Electrical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/41.jpg" },
+            { name: "Heetva Gandhi", bio: "Life Sciences", cat: "Work-Integrated Learning Mentors", img: "assets/42.jpg" },
+            { name: "Hanna Cole", bio: "Earth Science, Geophysics", cat: "Work-Integrated Learning Mentors", img: "assets/43.jpg" },
+            { name: "Jethro Wignaraj", bio: "Mechanical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/44.jpg" },
+            { name: "Anagha Koroth", bio: "Work-Integrated Learning Mentor", cat: "Work-Integrated Learning Mentors", img: "assets/45.jpg" },
+            { name: "Westley Wong", bio: "Computer Science For Software Development", cat: "Work-Integrated Learning Mentors", img: "assets/46.jpg" }
         ];
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
-        camera.position.z = 12;
+        const container = document.getElementById('canvas-container');
+        const hoverLabel = document.getElementById('hover-label');
+        const modal = document.getElementById('modal-overlay');
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        let scene, camera, renderer, globeGroup;
+        let nodesArray = [];
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let targetRotation = { x: 0, y: 0 };
+        let currentRotation = { x: 0, y: 0 };
+        let hoveredMesh = null;
+        let dragTotalDistance = 0;
+        const ambientVelocityY = 0.0012;
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.5;
+        const categoryMeta = {
+            "Community Camp Leads": { color: 0x00bcff, hexStr: "#00bcff", bg: "rgba(0,188,255,0.08)" },
+            "Community Camp Mentors": { color: 0x00ffd2, hexStr: "#00ffd2", bg: "rgba(0,255,210,0.08)" },
+            "Work-Integrated Learning Leads": { color: 0xff007f, hexStr: "#ff007f", bg: "rgba(255,0,127,0.08)" },
+            "Work-Integrated Learning Mentors": { color: 0x9d4edd, hexStr: "#9d4edd", bg: "rgba(157,78,221,0.08)" }
+        };
 
-        const group = new THREE.Group();
-        scene.add(group);
+        function init3D() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 17;
 
-        teamData.forEach((p, i) => {
-            const phi = Math.acos(-1 + (2 * i) / teamData.length);
-            const theta = Math.sqrt(teamData.length * Math.PI) * phi;
-            const x = 5 * Math.sin(phi) * Math.cos(theta);
-            const y = 5 * Math.sin(phi) * Math.sin(theta);
-            const z = 5 * Math.cos(phi);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
 
-            let color = 0xffffff;
-            if(p.cat === "Community Camp Leads") color = 0x00bcff;
-            else if(p.cat === "Community Camp Mentors") color = 0x00ffd2;
-            else if(p.cat === "Work-Integrated Learning Leads") color = 0xff007f;
-            else color = 0x9d4edd;
+            scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
 
-            const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 16), new THREE.MeshBasicMaterial({ color }));
-            mesh.position.set(x, y, z);
-            mesh.userData = p;
-            group.add(mesh);
-        });
+            globeGroup = new THREE.Group();
+            scene.add(globeGroup);
 
-        const raycaster = new THREE.Raycaster();
-        window.addEventListener('mousedown', () => { controls.autoRotate = false; });
-        window.addEventListener('click', (e) => {
-            const mouse = new THREE.Vector2((e.clientX/window.innerWidth)*2-1, -(e.clientY/window.innerHeight)*2+1);
-            raycaster.setFromCamera(mouse, camera);
-            const hits = raycaster.intersectObjects(group.children);
-            if(hits.length > 0) {
-                const data = hits[0].object.userData;
-                document.getElementById('m-name').innerText = data.name;
-                document.getElementById('m-cat').innerText = data.cat;
-                document.getElementById('m-bio').innerText = data.bio;
-                document.getElementById('modal').style.display = 'flex';
-            }
-        });
+            buildTeamSphere();
+            addEventListeners();
+            animate();
+        }
+
+        function buildTeamSphere() {
+            const radius = 5.5; 
+            const textureLoader = new THREE.TextureLoader();
+            
+            teamData.forEach((person, i) => {
+                const meta = categoryMeta[person.cat];
+
+                const phi = Math.acos(1 - 2 * (i + 0.5) / teamData.length);
+                const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
+
+                const x = radius * Math.sin(phi) * Math.cos(theta);
+                const y = radius * Math.sin(phi) * Math.sin(theta);
+                const z = radius * Math.cos(phi);
+
+                const geometry = new THREE.CircleGeometry(0.42, 32);
+                const ringMesh = new THREE.Mesh(
+                    new THREE.RingGeometry(0.43, 0.49, 32), 
+                    new THREE.MeshBasicMaterial({ color: meta.color, side: THREE.DoubleSide })
+                );
+
+                const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: false });
+
+                textureLoader.load(person.img, (texture) => {
+                    texture.minFilter = THREE.LinearFilter;
+                    material.map = texture;
+                    material.needsUpdate = true;
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.add(ringMesh); 
+                mesh.position.set(x, y, z);
+                mesh.lookAt(0, 0, 0);
+                mesh.rotateY(Math.PI); 
+
+                mesh.userData = { id: i, name: person.name, category: person.cat, bio: person.bio, imgUrl: person.img, baseScale: 1.0, meta: meta };
+
+                globeGroup.add(mesh);
+                nodesArray.push(mesh);
+            });
+
+            Object.keys(categoryMeta).forEach(catKey => {
+                const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
+                const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.35 });
+                const maxDistance = (catKey === "Work-Integrated Learning Leads") ? 6.5 : 4.8;
+
+                for (let i = 0; i < catMeshes.length; i++) {
+                    for (let j = i + 1; j < catMeshes.length; j++) {
+                        if (catMeshes[i].position.distanceTo(catMeshes[j].position) < maxDistance) { 
+                            const lineGeo = new THREE.BufferGeometry().setFromPoints([catMeshes[i].position, catMeshes[j].position]);
+                            globeGroup.add(new THREE.Line(lineGeo, lineMat));
+                        }
+                    }
+                }
+            });
+        }
 
         function animate() {
             requestAnimationFrame(animate);
-            controls.update();
+            if (!isDragging && !hoveredMesh) {
+                targetRotation.y += ambientVelocityY;
+            }
+            currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
+            currentRotation.y += (targetRotation.y - currentRotation.y) * 0.1;
+            globeGroup.rotation.x = currentRotation.x;
+            globeGroup.rotation.y = currentRotation.y;
+            nodesArray.forEach(node => {
+                let targetScale = node.userData.baseScale;
+                if (hoveredMesh === node) targetScale = 1.35; 
+                node.scale.set(targetScale, targetScale, targetScale);
+            });
             renderer.render(scene, camera);
         }
-        animate();
+
+        function addEventListeners() {
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousedown', (e) => { if (document.body.classList.contains('modal-active')) return; isDragging = true; dragTotalDistance = 0; previousMousePosition = { x: e.clientX, y: e.clientY }; });
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', () => { isDragging = false; });
+            window.addEventListener('click', onCanvasClick);
+        }
+
+        function onMouseMove(e) {
+            if (isDragging) {
+                const deltaMove = { x: e.clientX - previousMousePosition.x, y: e.clientY - previousMousePosition.y };
+                dragTotalDistance += Math.hypot(deltaMove.x, deltaMove.y);
+                targetRotation.y += deltaMove.x * 0.005;
+                targetRotation.x += deltaMove.y * 0.005;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+                return;
+            }
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(nodesArray);
+            if (intersects.length > 0) {
+                const hitMesh = intersects[0].object;
+                if (hoveredMesh !== hitMesh) {
+                    hoveredMesh = hitMesh;
+                    container.style.cursor = 'pointer';
+                    hoverLabel.style.display = 'block';
+                    hoverLabel.innerText = hoveredMesh.userData.name;
+                    hoverLabel.style.borderColor = hoveredMesh.userData.meta.hexStr;
+                    hoverLabel.style.color = "#ffffff";
+                }
+                hoverLabel.style.left = `${e.clientX}px`;
+                hoverLabel.style.top = `${e.clientY}px`;
+            } else {
+                hoveredMesh = null;
+                container.style.cursor = isDragging ? 'grabbing' : 'grab';
+                hoverLabel.style.display = 'none';
+            }
+        }
+
+        function onCanvasClick(e) {
+            if (document.body.classList.contains('modal-active')) return;
+            if (dragTotalDistance > 5) return;
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(nodesArray);
+            if (intersects.length > 0) openModal(intersects[0].object.userData);
+        }
+
+        function openModal(data) {
+            document.getElementById('modal-img').src = data.imgUrl;
+            document.getElementById('modal-img').style.borderColor = data.meta.hexStr;
+            document.getElementById('modal-name').innerText = data.name;
+            const tag = document.getElementById('modal-tag');
+            tag.innerText = data.category;
+            tag.style.color = data.meta.hexStr;
+            tag.style.background = data.meta.bg;
+            document.getElementById('modal-bio').innerText = data.bio;
+            document.body.classList.add('modal-active');
+            modal.classList.add('open');
+        }
+
+        function forceCloseModal() { modal.classList.remove('open'); document.body.classList.remove('modal-active'); }
+        function closeModal(e) { if (e.target === modal) forceCloseModal(); }
+        function onWindowResize() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
+
+        init3D();
     </script>
 </body>
 </html>
