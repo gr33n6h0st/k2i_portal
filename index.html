@@ -11,204 +11,42 @@
             --border-color: rgba(45, 54, 69, 0.5);
             --text-main: #f0f3f6;
             --text-muted: #6e7681;
-            
             --color-camp-lead: #00bcff;
             --color-camp: #00ffd2;
             --color-wil-lead: #ff007f;
             --color-wil: #9d4edd;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); overflow: hidden; width: 100vw; height: 100vh; user-select: none; }
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; cursor: grab; }
+        #canvas-container:active { cursor: grabbing; }
+        body.modal-active #canvas-container { filter: blur(12px) brightness(0.2); pointer-events: none; }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-            user-select: none;
-        }
-
-        #canvas-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            cursor: grab;
-        }
-        #canvas-container:active {
-            cursor: grabbing;
-        }
-
-        body.modal-active #canvas-container {
-            filter: blur(12px) brightness(0.2);
-            pointer-events: none;
-        }
-
-        header {
-            position: absolute;
-            top: 35px;
-            left: 35px;
-            z-index: 10;
-            pointer-events: none;
-            transition: opacity 0.4s;
-        }
+        header { position: absolute; top: 35px; left: 35px; z-index: 10; pointer-events: none; transition: opacity 0.4s; }
         body.modal-active header { opacity: 0.05; }
-        
-        header h1 {
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-weight: 500;
-        }
-        header p {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            letter-spacing: 1.5px;
-            margin-top: 5px;
-        }
+        header h1 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 500; }
+        header p { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 1.5px; margin-top: 5px; }
 
-        .hud-legend {
-            position: absolute;
-            bottom: 40px;
-            left: 35px;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            pointer-events: none;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 600;
-        }
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
+        .hud-legend { position: absolute; bottom: 40px; left: 35px; z-index: 10; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+        .legend-color { width: 12px; height: 12px; border-radius: 50%; }
 
-        .modal-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 30;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(6px);
-        }
-        .modal-overlay.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        
-        .modal-card {
-            background: var(--modal-bg);
-            border: 1px solid var(--border-color);
-            width: 750px;
-            min-height: 280px;
-            padding: 45px;
-            border-radius: 8px;
-            box-shadow: 0 40px 80px rgba(0,0,0,0.85);
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 40px;
-            transform: scale(0.94);
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-        }
-        .modal-overlay.open .modal-card {
-            transform: scale(1);
-        }
-        .close-btn {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.6rem;
-            cursor: pointer;
-            line-height: 1;
-        }
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 30; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(6px); }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-card { background: var(--modal-bg); border: 1px solid var(--border-color); width: 750px; min-height: 280px; padding: 45px; border-radius: 8px; box-shadow: 0 40px 80px rgba(0,0,0,0.85); display: flex; flex-direction: row; align-items: center; gap: 40px; transform: scale(0.94); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
+        .modal-overlay.open .modal-card { transform: scale(1); }
+        .close-btn { position: absolute; top: 25px; right: 25px; background: none; border: none; color: var(--text-muted); font-size: 1.6rem; cursor: pointer; line-height: 1; }
         .close-btn:hover { color: var(--text-main); }
 
         .modal-left { flex-shrink: 0; }
-        .modal-avatar {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            padding: 6px;
-            border: 2px solid transparent;
-            object-fit: cover;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-        }
-        
-        .modal-right {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            text-align: left;
-        }
-        .modal-name {
-            font-size: 1.8rem;
-            font-weight: 400;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
-        }
-        .modal-tag {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 2.5px;
-            padding: 5px 16px;
-            border-radius: 3px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .modal-bio {
-            font-size: 0.9rem;
-            line-height: 1.7;
-            color: #afb8c1;
-            border-top: 1px solid var(--border-color);
-            padding-top: 18px;
-            width: 100%;
-        }
+        .modal-avatar { width: 180px; height: 180px; border-radius: 50%; padding: 6px; border: 2px solid transparent; object-fit: cover; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        .modal-right { flex-grow: 1; display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+        .modal-name { font-size: 1.8rem; font-weight: 400; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .modal-tag { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2.5px; padding: 5px 16px; border-radius: 3px; margin-bottom: 20px; font-weight: 600; display: inline-block; }
+        .modal-bio { font-size: 0.9rem; line-height: 1.7; color: #afb8c1; border-top: 1px solid var(--border-color); padding-top: 18px; width: 100%; }
 
-        #hover-label {
-            position: absolute;
-            z-index: 20;
-            pointer-events: none;
-            background: rgba(6, 8, 12, 0.95);
-            border: 1px solid var(--border-color);
-            padding: 6px 14px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            display: none;
-            transform: translate(-50%, -140%);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
+        #hover-label { position: absolute; z-index: 20; pointer-events: none; background: rgba(6, 8, 12, 0.95); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; display: none; transform: translate(-50%, -140%); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -232,9 +70,7 @@
     <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-card">
             <button class="close-btn" onclick="forceCloseModal()">×</button>
-            <div class="modal-left">
-                <img id="modal-img" class="modal-avatar" src="" alt="">
-            </div>
+            <div class="modal-left"><img id="modal-img" class="modal-avatar" src="" alt=""></div>
             <div class="modal-right">
                 <h2 id="modal-name" class="modal-name"></h2>
                 <span id="modal-tag" class="modal-tag"></span>
@@ -244,6 +80,57 @@
     </div>
 
     <script>
+        // 1. DATA ARRAY
+        const teamData = [
+            { name: "Michael D'Ambrosi", bio: "Community Camp Lead", cat: "Community Camp Leads", img: "assets/0.jpg" },
+            { name: "Talia Palermo", bio: "Community Camp Lead", cat: "Community Camp Leads", img: "assets/1.jpg" },
+            { name: "Bamdad Ababaei", bio: "Engineering", cat: "Community Camp Mentors", img: "assets/2.jpg" },
+            { name: "Leon Li", bio: "Computer Science for Software Development", cat: "Community Camp Mentors", img: "assets/3.jpg" },
+            { name: "Emeline Williams", bio: "Honours Bachelor of Health Sciences", cat: "Community Camp Mentors", img: "assets/4.jpg" },
+            { name: "Sabriha Amin", bio: "Community Camp Mentor", cat: "Community Camp Mentors", img: "assets/5.jpg" },
+            { name: "Cameron Jackson", bio: "Mechatronic Engineering", cat: "Community Camp Mentors", img: "assets/6.jpg" },
+            { name: "Camille Jurik", bio: "Biomedical Science", cat: "Community Camp Mentors", img: "assets/7.jpg" },
+            { name: "Seila Bak", bio: "Digital Media", cat: "Community Camp Mentors", img: "assets/8.jpg" },
+            { name: "Brandon Smart", bio: "Computer Engineering - Faculty of Education", cat: "Work-Integrated Learning Leads", img: "assets/9.jpg" },
+            { name: "Hanifah Lameed", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/10.jpg" },
+            { name: "Sidney Liu", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/11.jpg" },
+            { name: "Elizabeth Ghreir", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/12.jpg" },
+            { name: "Sofie Khan", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/13.jpg" },
+            { name: "Bofina Manochehrzadeh", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/14.jpg" },
+            { name: "Anusha Masroor", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/15.jpg" },
+            { name: "Conan Lee", bio: "Work-Integrated Learning Lead", cat: "Work-Integrated Learning Leads", img: "assets/16.jpg" },
+            { name: "Shariah Mirza", bio: "Computer Science", cat: "Work-Integrated Learning Mentors", img: "assets/17.jpg" },
+            { name: "Stella Malik", bio: "Environmental Management", cat: "Work-Integrated Learning Mentors", img: "assets/18.jpg" },
+            { name: "Paola Tenaglia", bio: "Medical Sciences", cat: "Work-Integrated Learning Mentors", img: "assets/19.jpg" },
+            { name: "Mithil Kansara", bio: "Mechanical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/20.jpg" },
+            { name: "Fairuz Jahan", bio: "Computer Science", cat: "Work-Integrated Learning Mentors", img: "assets/21.jpg" },
+            { name: "Sakshi Sharma", bio: "Computer Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/22.jpg" },
+            { name: "Saif Alsafadi", bio: "Electrical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/23.jpg" },
+            { name: "Rithika Rose Samson", bio: "Mechatronics Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/24.jpg" },
+            { name: "Danya Shafi", bio: "Psychology & Biology", cat: "Work-Integrated Learning Mentors", img: "assets/25.jpg" },
+            { name: "Rithik Kumanan", bio: "Digital Media Game Development", cat: "Work-Integrated Learning Mentors", img: "assets/26.jpg" },
+            { name: "Dan Solomon", bio: "Statistics", cat: "Work-Integrated Learning Mentors", img: "assets/27.jpg" },
+            { name: "Sadia Jahan Shifa", bio: "Computer Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/28.jpg" },
+            { name: "Brian Chen", bio: "Electrical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/29.jpg" },
+            { name: "Niharika Tripathi", bio: "Electrical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/30.jpg" },
+            { name: "Aryan Dhanji", bio: "Computer Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/31.jpg" },
+            { name: "Ethan St. Louis", bio: "Computer Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/32.jpg" },
+            { name: "Neha Sharma", bio: "Software Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/33.jpg" },
+            { name: "Katelyn Yip", bio: "Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/34.jpg" },
+            { name: "Sami Ali", bio: "Computer Science", cat: "Work-Integrated Learning Mentors", img: "assets/35.jpg" },
+            { name: "Raley Terro", bio: "Computing (Honours)", cat: "Work-Integrated Learning Mentors", img: "assets/36.jpg" },
+            { name: "Mowmita Zannat", bio: "Bachelor of Science - Biology", cat: "Work-Integrated Learning Mentors", img: "assets/37.jpg" },
+            { name: "Arisa Arzan Pour", bio: "Computer Science", cat: "Work-Integrated Learning Mentors", img: "assets/38.jpg" },
+            { name: "Rafia Oishee", bio: "Chemical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/39.jpg" },
+            { name: "Mirza Baig", bio: "Bachelor of Software Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/40.jpg" },
+            { name: "AARON XAVIER GONSALVES", bio: "Electrical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/41.jpg" },
+            { name: "Heetva Gandhi", bio: "Life Sciences", cat: "Work-Integrated Learning Mentors", img: "assets/42.jpg" },
+            { name: "Hanna Cole", bio: "Earth Science, Geophysics", cat: "Work-Integrated Learning Mentors", img: "assets/43.jpg" },
+            { name: "Jethro Wignaraj", bio: "Mechanical Engineering", cat: "Work-Integrated Learning Mentors", img: "assets/44.jpg" },
+            { name: "Anagha Koroth", bio: "Work-Integrated Learning Mentor", cat: "Work-Integrated Learning Mentors", img: "assets/45.jpg" },
+            { name: "Westley Wong", bio: "Computer Science For Software Development", cat: "Work-Integrated Learning Mentors", img: "assets/46.jpg" }
+        ];
+
         const container = document.getElementById('canvas-container');
         const hoverLabel = document.getElementById('hover-label');
         const modal = document.getElementById('modal-overlay');
@@ -252,13 +139,11 @@
         let nodesArray = [];
         let raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
-        
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
         let targetRotation = { x: 0, y: 0 };
         let currentRotation = { x: 0, y: 0 };
         let hoveredMesh = null;
-
         let dragTotalDistance = 0;
         const ambientVelocityY = 0.0012;
 
@@ -293,21 +178,14 @@
         }
 
         function buildTeamSphere() {
-            const totalPeople = 45;
             const radius = 5.5; 
             const textureLoader = new THREE.TextureLoader();
-            textureLoader.setCrossOrigin('anonymous');
+            
+            teamData.forEach((person, i) => {
+                const meta = categoryMeta[person.cat];
 
-            for (let i = 0; i < totalPeople; i++) {
-                let category;
-                if (i < 5) category = "Community Camp Leads";
-                else if (i < 22) category = "Community Camp Mentors";
-                else if (i < 27) category = "Work-Integrated Learning Leads";
-                else category = "Work-Integrated Learning Mentors";
-
-                const meta = categoryMeta[category];
-
-                const phi = Math.acos(1 - 2 * (i + 0.5) / totalPeople);
+                // Fibonacci sphere calculation
+                const phi = Math.acos(1 - 2 * (i + 0.5) / teamData.length);
                 const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
 
                 const x = radius * Math.sin(phi) * Math.cos(theta);
@@ -320,49 +198,31 @@
                     new THREE.MeshBasicMaterial({ color: meta.color, side: THREE.DoubleSide })
                 );
 
-                const material = new THREE.MeshBasicMaterial({
-                    side: THREE.DoubleSide,
-                    transparent: false
+                const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: false });
+
+                // Load your local images
+                textureLoader.load(person.img, (texture) => {
+                    texture.minFilter = THREE.LinearFilter;
+                    material.map = texture;
+                    material.needsUpdate = true;
                 });
-
-                const imageSeed = 100 + i;
-                const imgUrl = `https://picsum.photos/id/${imageSeed}/150/150`;
-
-                textureLoader.load(
-                    imgUrl, 
-                    (texture) => {
-                        texture.minFilter = THREE.LinearFilter;
-                        material.map = texture;
-                        material.needsUpdate = true;
-                    }
-                );
 
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.add(ringMesh); 
-
                 mesh.position.set(x, y, z);
                 mesh.lookAt(0, 0, 0);
                 mesh.rotateY(Math.PI); 
 
-                mesh.userData = {
-                    id: i,
-                    name: `Team Member ${i + 1}`,
-                    category: category,
-                    bio: `Dossier overview data matrix for k2i Academy team asset. Specialized in delivering engineering programming under the Lassonde School framework. Integrated 3D framework component system.`,
-                    imgUrl: imgUrl,
-                    baseScale: 1.0,
-                    meta: meta
-                };
+                mesh.userData = { id: i, name: person.name, category: person.cat, bio: person.bio, imgUrl: person.img, baseScale: 1.0, meta: meta };
 
                 globeGroup.add(mesh);
                 nodesArray.push(mesh);
-            }
+            });
 
+            // Add lines between members
             Object.keys(categoryMeta).forEach(catKey => {
                 const catMeshes = nodesArray.filter(m => m.userData.category === catKey);
                 const lineMat = new THREE.LineBasicMaterial({ color: categoryMeta[catKey].color, transparent: true, opacity: 0.35 });
-                
-                // FIXED: Isolated standard threshold (4.8) vs the specific wide-interval group (6.5)
                 const maxDistance = (catKey === "Work-Integrated Learning Leads") ? 6.5 : 4.8;
 
                 for (let i = 0; i < catMeshes.length; i++) {
@@ -378,56 +238,24 @@
 
         function animate() {
             requestAnimationFrame(animate);
-
-            if (!isDragging) {
-                targetRotation.y += ambientVelocityY; 
-            }
-
+            if (!isDragging) targetRotation.y += ambientVelocityY;
             currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
             currentRotation.y += (targetRotation.y - currentRotation.y) * 0.1;
-
             globeGroup.rotation.x = currentRotation.x;
             globeGroup.rotation.y = currentRotation.y;
-
             nodesArray.forEach(node => {
                 let targetScale = node.userData.baseScale;
                 if (hoveredMesh === node) targetScale = 1.35; 
                 node.scale.set(targetScale, targetScale, targetScale);
             });
-
             renderer.render(scene, camera);
         }
 
         function addEventListeners() {
             window.addEventListener('resize', onWindowResize);
-            
-            window.addEventListener('mousedown', (e) => {
-                if (document.body.classList.contains('modal-active')) return;
-                isDragging = true;
-                dragTotalDistance = 0; 
-                previousMousePosition = { x: e.clientX, y: e.clientY };
-            });
-
+            window.addEventListener('mousedown', (e) => { if (document.body.classList.contains('modal-active')) return; isDragging = true; dragTotalDistance = 0; previousMousePosition = { x: e.clientX, y: e.clientY }; });
             window.addEventListener('mousemove', onMouseMove);
             window.addEventListener('mouseup', () => { isDragging = false; });
-
-            window.addEventListener('touchstart', (e) => {
-                if (document.body.classList.contains('modal-active')) return;
-                isDragging = true;
-                dragTotalDistance = 0;
-                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            });
-
-            window.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
-                const deltaMove = { x: e.touches[0].clientX - previousMousePosition.x, y: e.touches[0].clientY - previousMousePosition.y };
-                dragTotalDistance += Math.hypot(deltaMove.x, deltaMove.y);
-                targetRotation.y += deltaMove.x * 0.005;
-                targetRotation.x += deltaMove.y * 0.005;
-                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            });
-
-            window.addEventListener('touchend', () => { isDragging = false; });
             window.addEventListener('click', onCanvasClick);
         }
 
@@ -440,13 +268,10 @@
                 previousMousePosition = { x: e.clientX, y: e.clientY };
                 return;
             }
-
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(nodesArray);
-
             if (intersects.length > 0) {
                 const hitMesh = intersects[0].object;
                 if (hoveredMesh !== hitMesh) {
@@ -469,48 +294,29 @@
         function onCanvasClick(e) {
             if (document.body.classList.contains('modal-active')) return;
             if (dragTotalDistance > 5) return;
-
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(nodesArray);
-
-            if (intersects.length > 0) {
-                openModal(intersects[0].object.userData);
-            }
+            if (intersects.length > 0) openModal(intersects[0].object.userData);
         }
 
         function openModal(data) {
             document.getElementById('modal-img').src = data.imgUrl;
             document.getElementById('modal-img').style.borderColor = data.meta.hexStr;
             document.getElementById('modal-name').innerText = data.name;
-            
             const tag = document.getElementById('modal-tag');
             tag.innerText = data.category;
             tag.style.color = data.meta.hexStr;
             tag.style.background = data.meta.bg;
-
             document.getElementById('modal-bio').innerText = data.bio;
-            
             document.body.classList.add('modal-active');
             modal.classList.add('open');
         }
 
-        function forceCloseModal() {
-            modal.classList.remove('open');
-            document.body.classList.remove('modal-active');
-        }
-
-        function closeModal(e) {
-            if (e.target === modal) forceCloseModal();
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+        function forceCloseModal() { modal.classList.remove('open'); document.body.classList.remove('modal-active'); }
+        function closeModal(e) { if (e.target === modal) forceCloseModal(); }
+        function onWindowResize() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
 
         init3D();
     </script>
