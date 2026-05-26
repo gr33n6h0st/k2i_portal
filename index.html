@@ -20,30 +20,33 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); overflow: hidden; width: 100vw; height: 100vh; user-select: none; }
 
+        /* 3D Container */
         #stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background: #000; }
         #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; cursor: grab; }
         #canvas-container:active { cursor: grabbing; }
         body.modal-active #canvas-container { filter: blur(12px) brightness(0.2); pointer-events: none; }
 
+        /* HUD & UI */
         header { position: absolute; top: 35px; left: 35px; z-index: 10; pointer-events: none; }
         header h1 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 500; }
         header p { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 1.5px; margin-top: 5px; }
 
-        /* HUD Legend - Now Interactive */
         .hud-legend { position: absolute; bottom: 40px; left: 35px; z-index: 10; display: flex; flex-direction: column; gap: 12px; }
         .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; cursor: pointer; padding: 5px; border-radius: 4px; transition: background 0.3s; }
         .legend-item:hover { background: rgba(255,255,255,0.05); }
         .legend-color { width: 12px; height: 12px; border-radius: 50%; }
 
-        /* List Panel Styling */
-        .list-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: flex-start; backdrop-filter: blur(4px); padding-left: 50px; }
-        .list-panel { background: var(--modal-bg); border-right: 1px solid var(--border-color); width: 350px; height: 100%; padding: 40px; overflow-y: auto; }
-        .list-title { font-size: 1rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); }
-        .list-member { padding: 12px 0; border-bottom: 1px solid #1a1f29; cursor: pointer; transition: color 0.2s; }
-        .list-member:hover { color: #fff; }
-        .close-list { margin-bottom: 20px; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; }
+        /* List Pop-up */
+        .list-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; }
+        .list-panel { background: var(--modal-bg); border: 1px solid var(--border-color); width: 400px; max-height: 80vh; padding: 40px; border-radius: 8px; box-shadow: 0 40px 80px rgba(0,0,0,0.85); display: flex; flex-direction: column; }
+        .list-content { overflow-y: auto; flex-grow: 1; margin: 10px 0; }
+        .list-title { font-size: 1.1rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .list-member { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: color 0.2s; }
+        .list-member:hover { color: var(--color-camp-lead); }
+        .close-list-btn { margin-top: 20px; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; text-align: center; border: 1px solid var(--border-color); padding: 10px; border-radius: 4px; }
+        .close-list-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
 
-        /* Modal Styling */
+        /* Profile Modal */
         .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 30; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(6px); }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
         .modal-card { background: var(--modal-bg); border: 1px solid var(--border-color); width: 750px; min-height: 280px; padding: 45px; border-radius: 8px; box-shadow: 0 40px 80px rgba(0,0,0,0.85); display: flex; flex-direction: row; align-items: center; gap: 40px; transform: scale(0.94); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
@@ -74,14 +77,14 @@
         <div class="legend-item" onclick="openList('Community Camp Leads')"><div class="legend-color" style="background: var(--color-camp-lead)"></div>Community Camp Leads</div>
         <div class="legend-item" onclick="openList('Community Camp Mentors')"><div class="legend-color" style="background: var(--color-camp)"></div>Community Camp Mentors</div>
         <div class="legend-item" onclick="openList('Work-Integrated Learning Leads')"><div class="legend-color" style="background: var(--color-wil-lead)"></div>Work-Integrated Learning Leads</div>
-        <div class="legend-item" onclick="openList('Work-Integrated Learning Mentors')"><div class="legend-color" style="background: var(--color-wil-mentors)"></div>Work-Integrated Learning Mentors</div>
+        <div class="legend-item" onclick="openList('Work-Integrated Learning Mentors')"><div class="legend-color" style="background: var(--color-wil)"></div>Work-Integrated Learning Mentors</div>
     </div>
 
     <div id="list-overlay" class="list-overlay" onclick="closeList()">
         <div class="list-panel" onclick="event.stopPropagation()">
-            <div class="close-list" onclick="closeList()">← Back to Matrix</div>
             <h2 id="list-title" class="list-title">Category</h2>
-            <div id="list-content"></div>
+            <div id="list-content" class="list-content"></div>
+            <div class="close-list-btn" onclick="closeList()">Close</div>
         </div>
     </div>
 
@@ -148,7 +151,6 @@
             { name: "Westley Wong", bio: "Computer Science For Software Development", cat: "Work-Integrated Learning Mentors", img: "assets/46.jpg" }
         ];
 
-        // --- 3D ENGINE & LIST LOGIC ---
         const categoryMeta = {
             "Community Camp Leads": { color: 0x00bcff, hexStr: "#00bcff", bg: "rgba(0,188,255,0.08)" },
             "Community Camp Mentors": { color: 0x00ffd2, hexStr: "#00ffd2", bg: "rgba(0,255,210,0.08)" },
@@ -156,15 +158,13 @@
             "Work-Integrated Learning Mentors": { color: 0x9d4edd, hexStr: "#9d4edd", bg: "rgba(157,78,221,0.08)" }
         };
 
-        // --- UI FUNCTIONS ---
+        // --- List UI ---
         function openList(cat) {
             const listOverlay = document.getElementById('list-overlay');
             const listContent = document.getElementById('list-content');
             document.getElementById('list-title').innerText = cat;
             listContent.innerHTML = '';
-
-            const filtered = teamData.filter(p => p.cat === cat);
-            filtered.forEach(p => {
+            teamData.filter(p => p.cat === cat).forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'list-member';
                 div.innerText = p.name;
@@ -173,9 +173,9 @@
             });
             listOverlay.style.display = 'flex';
         }
-
         function closeList() { document.getElementById('list-overlay').style.display = 'none'; }
         
+        // --- Modal ---
         function openModal(data) {
             document.getElementById('modal-img').src = data.imgUrl;
             document.getElementById('modal-img').style.borderColor = categoryMeta[data.cat].hexStr;
@@ -188,19 +188,13 @@
             document.body.classList.add('modal-active');
             document.getElementById('modal-overlay').classList.add('open');
         }
-
         function forceCloseModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.classList.remove('modal-active'); }
         function closeModal(e) { if (e.target.id === 'modal-overlay') forceCloseModal(); }
 
-        // --- 3D SETUP (Simplified Boilerplate) ---
+        // --- 3D Scene ---
         let scene, camera, renderer, globeGroup;
-        let nodesArray = [];
-        let raycaster = new THREE.Raycaster();
-        let mouse = new THREE.Vector2();
-        let isDragging = false;
-        let dragTotalDistance = 0;
-        let targetRotation = { x: 0, y: 0 };
-        let currentRotation = { x: 0, y: 0 };
+        let nodesArray = [], raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
+        let isDragging = false, targetRotation = { x: 0, y: 0 }, currentRotation = { x: 0, y: 0 };
         let hoveredMesh = null;
 
         function init3D() {
@@ -211,52 +205,34 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.getElementById('canvas-container').appendChild(renderer.domElement);
             
-            // Starfield
-            const starGeometry = new THREE.BufferGeometry();
-            const starMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.05 });
-            const pts = [];
-            for(let i=0; i<2000; i++) pts.push((Math.random()-0.5)*100, (Math.random()-0.5)*100, (Math.random()-0.5)*100);
-            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-            scene.add(new THREE.Points(starGeometry, starMaterial));
+            const stars = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({length: 6000}, () => (Math.random()-0.5)*100), 3)), new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.05 }));
+            scene.add(stars);
 
             globeGroup = new THREE.Group();
             scene.add(globeGroup);
 
-            // Build Nodes
-            const radius = 5.5;
             const textureLoader = new THREE.TextureLoader();
             teamData.forEach((p, i) => {
                 const phi = Math.acos(1 - 2 * (i + 0.5) / teamData.length);
                 const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
-                const x = radius * Math.sin(phi) * Math.cos(theta);
-                const y = radius * Math.sin(phi) * Math.sin(theta);
-                const z = radius * Math.cos(phi);
-                
                 const mesh = new THREE.Mesh(new THREE.CircleGeometry(0.42, 32), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
                 textureLoader.load(p.img, (tex) => { mesh.material.map = tex; mesh.material.needsUpdate = true; });
-                mesh.position.set(x, y, z);
-                mesh.lookAt(0,0,0);
-                mesh.rotateY(Math.PI);
+                mesh.position.set(5.5 * Math.sin(phi) * Math.cos(theta), 5.5 * Math.sin(phi) * Math.sin(theta), 5.5 * Math.cos(phi));
+                mesh.lookAt(0,0,0); mesh.rotateY(Math.PI);
                 mesh.userData = p;
                 globeGroup.add(mesh);
                 nodesArray.push(mesh);
             });
 
-            window.addEventListener('mousedown', (e) => { isDragging = true; dragTotalDistance = 0; });
+            window.addEventListener('mousedown', () => { isDragging = true; });
             window.addEventListener('mouseup', () => { isDragging = false; });
             window.addEventListener('mousemove', (e) => {
                 if(isDragging) { targetRotation.y += e.movementX * 0.005; targetRotation.x += e.movementY * 0.005; }
-                // Hover logic simplified
                 mouse.x = (e.clientX/window.innerWidth)*2-1; mouse.y = -(e.clientY/window.innerHeight)*2+1;
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObjects(nodesArray);
-                if(intersects.length > 0) {
-                    document.body.style.cursor = 'pointer';
-                    hoveredMesh = intersects[0].object;
-                } else {
-                    document.body.style.cursor = 'grab';
-                    hoveredMesh = null;
-                }
+                document.body.style.cursor = intersects.length > 0 ? 'pointer' : 'grab';
+                hoveredMesh = intersects.length > 0 ? intersects[0].object : null;
             });
             window.addEventListener('click', () => { if(hoveredMesh) openModal(hoveredMesh.userData); });
 
